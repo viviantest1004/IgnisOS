@@ -24,16 +24,19 @@ BIN_DIR="/usr/local/bin"
 
 log "Installing IgnisOS apps..."
 mkdir -p "$INSTALL_DIR"
-cp -r ignis-shell    "$INSTALL_DIR/"
-cp -r ignis-settings "$INSTALL_DIR/"
-cp -r ignis-files    "$INSTALL_DIR/"
-cp -r ignis-calc     "$INSTALL_DIR/"
-cp -r ignis-terminal "$INSTALL_DIR/"
-cp -r ignis-recovery "$INSTALL_DIR/"
-cp -r ignis-icons    "$INSTALL_DIR/"
+cp -r ignis-shell       "$INSTALL_DIR/"
+cp -r ignis-settings    "$INSTALL_DIR/"
+cp -r ignis-files       "$INSTALL_DIR/"
+cp -r ignis-calc        "$INSTALL_DIR/"
+cp -r ignis-terminal    "$INSTALL_DIR/"
+cp -r ignis-recovery    "$INSTALL_DIR/"
+cp -r ignis-icons       "$INSTALL_DIR/"
+cp -r ignis-notepad     "$INSTALL_DIR/"
+cp -r ignis-clock       "$INSTALL_DIR/"
+cp -r ignis-taskmanager "$INSTALL_DIR/"
 
 log "Creating launcher scripts..."
-for app in shell settings files calc terminal; do
+for app in shell settings files calc terminal notepad clock taskmanager; do
     cat > "${BIN_DIR}/ignis-${app}" <<EOF
 #!/usr/bin/env bash
 exec python3 ${INSTALL_DIR}/ignis-${app}/${app}.py "\$@"

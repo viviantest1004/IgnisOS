@@ -26,15 +26,18 @@ RUN useradd -m -s /bin/bash -G sudo ignis 2>/dev/null || true && \
     echo "ignis:ignis" | chpasswd && \
     echo "root:ignis" | chpasswd
 
-COPY ignis-shell     /usr/share/ignis/ignis-shell/
-COPY ignis-settings  /usr/share/ignis/ignis-settings/
-COPY ignis-files     /usr/share/ignis/ignis-files/
-COPY ignis-calc      /usr/share/ignis/ignis-calc/
-COPY ignis-terminal  /usr/share/ignis/ignis-terminal/
-COPY ignis-oobe      /usr/share/ignis/ignis-oobe/
-COPY ignis-recovery  /usr/share/ignis/ignis-recovery/
+COPY ignis-shell        /usr/share/ignis/ignis-shell/
+COPY ignis-settings     /usr/share/ignis/ignis-settings/
+COPY ignis-files        /usr/share/ignis/ignis-files/
+COPY ignis-calc         /usr/share/ignis/ignis-calc/
+COPY ignis-terminal     /usr/share/ignis/ignis-terminal/
+COPY ignis-oobe         /usr/share/ignis/ignis-oobe/
+COPY ignis-recovery     /usr/share/ignis/ignis-recovery/
+COPY ignis-notepad      /usr/share/ignis/ignis-notepad/
+COPY ignis-clock        /usr/share/ignis/ignis-clock/
+COPY ignis-taskmanager  /usr/share/ignis/ignis-taskmanager/
 
-RUN for app in shell settings files calc terminal oobe; do \
+RUN for app in shell settings files calc terminal oobe notepad clock taskmanager; do \
       printf '#!/usr/bin/env bash\nexec python3 /usr/share/ignis/ignis-%s/%s.py "$@"\n' \
         "$app" "$app" > /usr/local/bin/ignis-$app && \
       chmod +x /usr/local/bin/ignis-$app; \

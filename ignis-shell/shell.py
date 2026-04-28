@@ -241,16 +241,18 @@ button:active { transform: scale(0.95); }
 """
 
 APPS = [
-    {"name": "Terminal",    "icon": "🖥️",  "cmd": "ignis-terminal", "fixed": True},
-    {"name": "Calculator",  "icon": "🧮",  "cmd": "ignis-calc",     "fixed": True},
-    {"name": "Browser",     "icon": "🌐",  "cmd": "firefox",        "fixed": True},
-    {"name": "Settings",    "icon": "⚙️",  "cmd": "ignis-settings", "fixed": True},
-    {"name": "Files",       "icon": "📂",  "cmd": "ignis-files",    "fixed": True},
-    {"name": "Text Editor", "icon": "📝",  "cmd": "gedit",          "fixed": False},
-    {"name": "Image View",  "icon": "🖼️",  "cmd": "eog",            "fixed": False},
-    {"name": "System Mon.", "icon": "📊",  "cmd": "gnome-system-monitor", "fixed": False},
-    {"name": "Python",      "icon": "🐍",  "cmd": "ignis-terminal", "fixed": False},
-    {"name": "Recovery",    "icon": "🛠️",  "cmd": "ignis-recovery", "fixed": False},
+    {"name": "Terminal",     "icon": "🖥️",  "cmd": "ignis-terminal",     "fixed": True},
+    {"name": "Calculator",   "icon": "🧮",  "cmd": "ignis-calc",         "fixed": True},
+    {"name": "Browser",      "icon": "🌐",  "cmd": "firefox",            "fixed": True},
+    {"name": "Settings",     "icon": "⚙️",  "cmd": "ignis-settings",     "fixed": True},
+    {"name": "Files",        "icon": "📂",  "cmd": "ignis-files",        "fixed": True},
+    {"name": "메모장",        "icon": "📝",  "cmd": "ignis-notepad",      "fixed": True},
+    {"name": "시계",          "icon": "🕐",  "cmd": "ignis-clock",        "fixed": False},
+    {"name": "작업 관리자",   "icon": "📊",  "cmd": "ignis-taskmanager",  "fixed": False},
+    {"name": "Python",       "icon": "🐍",  "cmd": "ignis-terminal",     "fixed": False},
+    {"name": "Image Viewer", "icon": "🖼️",  "cmd": "eog",                "fixed": False},
+    {"name": "Text Editor",  "icon": "✏️",  "cmd": "gedit",              "fixed": False},
+    {"name": "Recovery",     "icon": "🛠️",  "cmd": "ignis-recovery",     "fixed": False},
 ]
 
 

@@ -89,8 +89,14 @@ PANELS = [
     ("🌐", "언어 및 지역",  "language"),
     ("🕐", "날짜 및 시간",  "datetime"),
     ("☀️", "밝기 및 전원",  "power"),
-    ("👤", "사용자",        "users"),
+    ("⌨️", "키보드",        "keyboard"),
+    ("🖱️", "마우스",        "mouse"),
+    ("🔔", "알림",          "notifications"),
     ("🔒", "보안",          "security"),
+    ("👤", "사용자",        "users"),
+    ("🖨️", "프린터",        "printer"),
+    ("💾", "저장소",        "storage"),
+    ("🌐", "네트워크",      "network"),
     ("📦", "앱 및 업데이트","apps"),
     ("♿", "손쉬운 사용",   "accessibility"),
     ("ℹ️", "시스템 정보",   "about"),
@@ -605,6 +611,173 @@ class AboutPanel(Gtk.Box):
         display.get_clipboard().set(info_text)
 
 
+class KeyboardPanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        repeat_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 1, 10, 1)
+        repeat_scale.set_hexpand(True); repeat_scale.set_value(5)
+        self.append(card("키 반복 속도", "키를 누르고 있을 때 반복 속도", repeat_scale))
+
+        delay_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 1, 10, 1)
+        delay_scale.set_hexpand(True); delay_scale.set_value(3)
+        self.append(card("반복 지연", "키 반복 시작 전 대기 시간", delay_scale))
+
+        layout_combo = Gtk.DropDown()
+        layouts = ["영어 (US)", "한국어", "日本語", "QWERTY", "Dvorak", "Colemak"]
+        layout_combo.set_model(Gtk.StringList.new(layouts))
+        self.append(card("키보드 레이아웃", "키보드 입력 배열", layout_combo))
+
+        shortcuts = Gtk.Switch(); shortcuts.set_active(True)
+        self.append(card("키보드 단축키", "시스템 단축키 활성화", shortcuts))
+
+        autocorrect = Gtk.Switch()
+        self.append(card("자동 수정", "오타 자동 교정", autocorrect))
+
+
+class MousePanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        speed_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 1, 10, 1)
+        speed_scale.set_hexpand(True); speed_scale.set_value(5)
+        speed_scale.connect("value-changed", lambda s:
+            run(f"xinput set-prop 'pointer' 'libinput Accel Speed' {(s.get_value()-5)/5}", capture=False))
+        self.append(card("포인터 속도", "마우스/터치패드 커서 속도", speed_scale))
+
+        natural = Gtk.Switch()
+        natural.connect("state-set", lambda s, st:
+            run(f"xinput set-prop 'pointer' 'libinput Natural Scrolling Enabled' {1 if st else 0}", capture=False))
+        self.append(card("자연 스크롤", "스크롤 방향 반전 (macOS 스타일)", natural))
+
+        tap = Gtk.Switch(); tap.set_active(True)
+        self.append(card("탭하여 클릭", "터치패드 탭을 클릭으로 인식", tap))
+
+        accel = Gtk.Switch(); accel.set_active(True)
+        self.append(card("포인터 가속", "속도에 따라 커서 가속", accel))
+
+        buttons = Gtk.DropDown()
+        buttons.set_model(Gtk.StringList.new(["오른손잡이", "왼손잡이"]))
+        self.append(card("기본 버튼", "마우스 주 버튼 방향", buttons))
+
+
+class NotificationsPanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        dnd = Gtk.Switch()
+        self.append(card("방해 금지 모드", "모든 알림을 끕니다", dnd))
+
+        sound = Gtk.Switch(); sound.set_active(True)
+        self.append(card("알림음", "알림 수신 시 소리 재생", sound))
+
+        preview = Gtk.Switch(); preview.set_active(True)
+        self.append(card("잠금 화면 알림", "잠금 화면에서 알림 표시", preview))
+
+        pos_combo = Gtk.DropDown()
+        pos_combo.set_model(Gtk.StringList.new(["오른쪽 위", "오른쪽 아래", "왼쪽 위", "왼쪽 아래"]))
+        self.append(card("알림 위치", "알림 팝업이 나타날 위치", pos_combo))
+
+        timeout_combo = Gtk.DropDown()
+        timeout_combo.set_model(Gtk.StringList.new(["3초", "5초", "10초", "계속 표시"]))
+        timeout_combo.set_selected(1)
+        self.append(card("알림 표시 시간", "알림이 사라지기까지의 시간", timeout_combo))
+
+
+class PrinterPanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        printers = run("lpstat -p 2>/dev/null") or "연결된 프린터 없음"
+        info = Gtk.Label(label=printers, xalign=0, wrap=True)
+        info.add_css_class("settings-card")
+        self.append(info)
+
+        add_btn = Gtk.Button(label="➕ 프린터 추가")
+        add_btn.add_css_class("accent-btn")
+        add_btn.connect("clicked", lambda *_: run("system-config-printer", capture=False))
+        self.append(add_btn)
+
+        default_combo = Gtk.DropDown()
+        default_combo.set_model(Gtk.StringList.new(["기본 프린터", "PDF 저장"]))
+        self.append(card("기본 프린터", "기본으로 사용할 프린터", default_combo))
+
+        quality_combo = Gtk.DropDown()
+        quality_combo.set_model(Gtk.StringList.new(["초안", "보통", "높음", "최상"]))
+        quality_combo.set_selected(1)
+        self.append(card("인쇄 품질", "기본 인쇄 품질", quality_combo))
+
+
+class StoragePanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        # 디스크 사용량
+        try:
+            import shutil
+            total, used, free = shutil.disk_usage("/")
+            pct = used / total * 100
+            bar = Gtk.ProgressBar()
+            bar.set_fraction(pct / 100)
+            bar.set_show_text(True)
+            bar.set_text(f"{used//1024//1024//1024:.1f}GB / {total//1024//1024//1024:.1f}GB 사용")
+            self.append(card("내부 저장소", f"{free//1024//1024//1024:.1f}GB 남음", bar))
+        except Exception:
+            self.append(card("저장소", "정보를 불러올 수 없습니다"))
+
+        # 마운트된 드라이브
+        mounts = run("lsblk -o NAME,SIZE,MOUNTPOINT -n 2>/dev/null | head -10") or "드라이브 없음"
+        mount_lbl = Gtk.Label(label=mounts, xalign=0)
+        mount_lbl.add_css_class("settings-card")
+        mount_lbl.set_selectable(True)
+        self.append(mount_lbl)
+
+        clean_btn = Gtk.Button(label="🗑 임시 파일 정리")
+        clean_btn.add_css_class("accent-btn")
+        clean_btn.connect("clicked", lambda *_: run("rm -rf /tmp/* ~/.cache/thumbnails 2>/dev/null", capture=False))
+        self.append(clean_btn)
+
+
+class NetworkPanel(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_margin_start(24); self.set_margin_end(24)
+
+        ip = run("ip -4 addr show | grep inet | awk '{print $2}' | head -3") or "N/A"
+        self.append(card("IP 주소", ip))
+
+        dns_combo = Gtk.DropDown()
+        dns_combo.set_model(Gtk.StringList.new([
+            "자동 (DHCP)", "Google (8.8.8.8)", "Cloudflare (1.1.1.1)", "수동 설정"
+        ]))
+        dns_combo.connect("notify::selected", self._on_dns)
+        self.append(card("DNS 서버", "이름 확인 서버", dns_combo))
+
+        proxy = Gtk.Switch()
+        self.append(card("프록시", "네트워크 프록시 사용", proxy))
+
+        vpn_btn = Gtk.Button(label="🔐 VPN 설정")
+        vpn_btn.add_css_class("accent-btn")
+        self.append(vpn_btn)
+
+        firewall = Gtk.Switch()
+        firewall.connect("state-set", lambda s, st:
+            run(f"ufw {'enable' if st else 'disable'}", capture=False))
+        self.append(card("방화벽", "UFW 네트워크 방화벽", firewall))
+
+    def _on_dns(self, combo, *_):
+        dns_map = {1: "8.8.8.8\nnameserver 8.8.4.4",
+                   2: "1.1.1.1\nnameserver 1.0.0.1"}
+        idx = combo.get_selected()
+        if idx in dns_map:
+            run(f"echo 'nameserver {dns_map[idx]}' | sudo tee /etc/resolv.conf", capture=False)
+
+
 # ── 메인 설정 앱 ───────────────────────────────────
 class IgnisSettings(Adw.Application):
     def __init__(self):
@@ -668,16 +841,22 @@ class IgnisSettings(Adw.Application):
             panel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             panel_box.append(title_lbl)
 
-            if key == "wifi":         panel = WifiPanel()
-            elif key == "bluetooth":  panel = BluetoothPanel()
-            elif key == "display":    panel = DisplayPanel()
-            elif key == "sound":      panel = SoundPanel()
-            elif key == "language":   panel = LanguagePanel()
-            elif key == "datetime":   panel = DateTimePanel()
-            elif key == "power":      panel = PowerPanel()
-            elif key == "users":      panel = UsersPanel(win)
-            elif key == "security":   panel = SecurityPanel()
-            elif key == "about":      panel = AboutPanel()
+            if key == "wifi":              panel = WifiPanel()
+            elif key == "bluetooth":       panel = BluetoothPanel()
+            elif key == "display":         panel = DisplayPanel()
+            elif key == "sound":           panel = SoundPanel()
+            elif key == "language":        panel = LanguagePanel()
+            elif key == "datetime":        panel = DateTimePanel()
+            elif key == "power":           panel = PowerPanel()
+            elif key == "keyboard":        panel = KeyboardPanel()
+            elif key == "mouse":           panel = MousePanel()
+            elif key == "notifications":   panel = NotificationsPanel()
+            elif key == "users":           panel = UsersPanel(win)
+            elif key == "security":        panel = SecurityPanel()
+            elif key == "printer":         panel = PrinterPanel()
+            elif key == "storage":         panel = StoragePanel()
+            elif key == "network":         panel = NetworkPanel()
+            elif key == "about":           panel = AboutPanel()
             else:
                 panel = Gtk.Label(label=f"{name} 설정 (준비 중)")
                 panel.add_css_class("settings-card-desc")
