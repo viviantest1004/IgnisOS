@@ -108,7 +108,13 @@ apt-get install -y --no-install-recommends \
   git \
   ca-certificates \
   locales \
-  tzdata
+  tzdata \
+  python3 \
+  python3-pip \
+  python3-gi \
+  python3-gi-cairo \
+  gir1.2-gtk-4.0 \
+  gir1.2-adw-1
 
 # 데스크톱 (GNOME minimal)
 apt-get install -y --no-install-recommends \

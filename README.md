@@ -13,12 +13,14 @@
 
 ## 📥 Download ISO (ARM64)
 
+> **[🌐 ISO Download Website](https://viviantest1004.github.io/IgnisOS/)** ← direct download page
+
 | Edition | Size | Download |
 |---------|------|----------|
-| **IgnisOS 1.0.0 Live ARM64** *(boot without install)* | ~2.1 GB | [🔗 GitHub Releases](https://github.com/viviantest1004/IgnisOS/releases/tag/v1.0.0) |
-| **IgnisOS 1.0.0 Install ARM64** *(full installer)* | ~2.8 GB | [🔗 GitHub Releases](https://github.com/viviantest1004/IgnisOS/releases/tag/v1.0.0) |
+| **IgnisOS 1.0.0 Live ARM64** *(boot without install)* | ~2.1 GB | [🔗 Download Page](https://viviantest1004.github.io/IgnisOS/) · [GitHub Releases](https://github.com/viviantest1004/IgnisOS/releases/tag/v1.0.0) |
+| **IgnisOS 1.0.0 Install ARM64** *(full installer)* | ~2.8 GB | [🔗 Download Page](https://viviantest1004.github.io/IgnisOS/) · [GitHub Releases](https://github.com/viviantest1004/IgnisOS/releases/tag/v1.0.0) |
 
-> ⚠️ **ARM64 only.** These ISOs run on ARM64 (aarch64) hardware such as Raspberry Pi 4/5, Apple M1/M2 (via UTM), QEMU ARM64, AWS Graviton, etc.
+> ⚠️ **ARM64 only.** These ISOs run on ARM64 (aarch64) hardware such as Raspberry Pi 4/5, Apple M1/M2/M3/M4 (via UTM), QEMU ARM64, AWS Graviton, etc.
 
 ### Flash to USB
 ```bash
@@ -179,6 +181,35 @@ git clone https://github.com/viviantest1004/IgnisOS.git
 cd IgnisOS
 sudo ./scripts/setup.sh
 ```
+
+---
+
+## 🍎 Run on Apple M1/M2/M3/M4 (via UTM)
+
+> **UTM** is a free VM app for macOS. Download from [mac.getutm.app](https://mac.getutm.app/)
+
+### Step-by-step (UTM)
+
+1. **Download** UTM from [mac.getutm.app](https://mac.getutm.app/) and open it.
+2. Click **"+"** → **"Virtualize"** (NOT emulate — M-series Macs run ARM64 natively at full speed).
+3. Select **"Linux"** as the operating system.
+4. Click **"Browse"** and select the `IgnisOS-1.0.0-live-arm64.iso` file.
+5. Set RAM to **at least 2048 MB** (4096 MB recommended).
+6. Set disk size to **20 GB** or more.
+7. Leave CPU cores at default (or set to 4+).
+8. Click **"Save"** then **"Play"** to boot IgnisOS.
+
+> **Note:** If you see a blank screen, wait 10–15 seconds — the Uptime Kernel loads first, then the desktop appears.
+
+### UTM Settings (recommended)
+| Setting | Value |
+|---------|-------|
+| Virtualization | Enabled (ARM64 native) |
+| RAM | 4096 MB |
+| CPU Cores | 4 |
+| Storage | 20 GB |
+| Display | VirtIO GPU |
+| Network | Shared Network (NAT) |
 
 ---
 

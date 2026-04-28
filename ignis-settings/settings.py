@@ -9,6 +9,29 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
 import subprocess, os, json, pwd, grp, threading
 
+CONFIG_FILE = os.path.expanduser("~/.config/ignis/shell.json")
+
+def _load_shell_cfg():
+    try:
+        with open(CONFIG_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {"dark_mode": True}
+
+def _save_shell_cfg(cfg):
+    os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(cfg, f)
+
+def apply_theme(dark: bool):
+    """Apply dark/light theme to the settings app."""
+    sm = Adw.StyleManager.get_default()
+    sm.set_color_scheme(
+        Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
+    cfg = _load_shell_cfg()
+    cfg["dark_mode"] = dark
+    _save_shell_cfg(cfg)
+
 CSS = b"""
 .settings-sidebar {
     background: rgba(10,10,20,0.95);
@@ -248,8 +271,10 @@ class DisplayPanel(Gtk.Box):
         self.append(card("야간 모드", "화면 색온도를 따뜻하게 합니다", ns))
 
         # 다크 모드
+        cfg = _load_shell_cfg()
         dm = Gtk.Switch()
-        dm.set_active(True)
+        dm.set_active(cfg.get("dark_mode", True))
+        dm.connect("state-set", lambda s, state: apply_theme(state))
         self.append(card("다크 모드", "어두운 테마를 사용합니다", dm))
 
     def _on_resolution(self, combo, *_):
