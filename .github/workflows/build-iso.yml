@@ -70,11 +70,14 @@ jobs:
 
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/boot/filesystem.squashfs" \
             -comp xz -e boot -e proc -e sys -noappend
+          sudo chmod 644 "${ISO_DIR}/boot/filesystem.squashfs"
           echo "Squashfs: $(du -sh ${ISO_DIR}/boot/filesystem.squashfs | cut -f1)"
 
           cp config/grub/grub.cfg "${ISO_DIR}/boot/grub/grub.cfg"
 
-          xorriso -as mkisofs -r -V "IgnisOS_${VER}" \
+          sudo chmod -R a+rX "${ISO_DIR}"
+
+          sudo xorriso -as mkisofs -r -V "IgnisOS_${VER}" \
             -o "build/IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
           echo "ISO: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
 
