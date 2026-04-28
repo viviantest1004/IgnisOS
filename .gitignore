@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+build/
+*.iso
+*.img
+uptime-kernel/uptime-kernel
+uptime-kernel/uptime-kernel-arm64
+uptime-kernel/uptime-kernel-native
