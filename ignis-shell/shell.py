@@ -50,6 +50,12 @@ CSS = b"""
     background: rgba(232, 93, 4, 0.3);
     border: 1px solid #e85d04;
 }
+.dock-running-dot {
+    color: #e85d04;
+    font-size: 8px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
 .dock-launcher {
     background: rgba(232, 93, 4, 0.15);
     border: 1px solid rgba(232, 93, 4, 0.4);
@@ -248,6 +254,18 @@ class TopBar(Gtk.ApplicationWindow):
 
 
 # ── 우측 독 ────────────────────────────────────────
+def is_running(cmd):
+    """앱이 실행 중인지 확인 (프로세스 이름으로)"""
+    try:
+        name = cmd.split()[0].split("/")[-1]
+        result = subprocess.run(
+            ["pgrep", "-f", name],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 class Dock(Gtk.ApplicationWindow):
     def __init__(self, app, launcher_toggle_cb):
         super().__init__(application=app)
@@ -267,51 +285,85 @@ class Dock(Gtk.ApplicationWindow):
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.set_child(scroll)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        box.set_margin_top(36)  # 상단바 높이
-        box.set_margin_bottom(8)
-        scroll.set_child(box)
+        self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self._box.set_margin_top(36)
+        self._box.set_margin_bottom(8)
+        scroll.set_child(self._box)
+
+        # 실행 중 표시 점 레이블 저장 {cmd: dot_label}
+        self._dot_labels = {}
 
         # 고정 앱 아이콘
         for app_info in APPS:
             if not app_info["fixed"]:
                 continue
             btn = self._make_dock_btn(app_info)
-            box.append(btn)
+            self._box.append(btn)
 
         # spacer
-        box.append(Gtk.Box(vexpand=True))
+        self._box.append(Gtk.Box(vexpand=True))
 
-        # 런처 버튼 (맥 Launchpad / 윈도우 버튼)
+        # 런처 버튼
         self.launcher_btn = Gtk.Button(label="⊞")
         self.launcher_btn.add_css_class("dock-launcher")
         self.launcher_btn.connect("clicked", self._on_launcher)
-        box.append(self.launcher_btn)
+        self._box.append(self.launcher_btn)
 
         # 전원 버튼
         pwr = Gtk.Button(label="⏻")
         pwr.add_css_class("dock-launcher")
         pwr.connect("clicked", self._on_power)
-        box.append(pwr)
+        self._box.append(pwr)
+
+        # 실행 중 앱 감지 — 2초마다 업데이트
+        GLib.timeout_add(2000, self._update_running_dots)
 
     def _make_dock_btn(self, app_info):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-        box.add_css_class("dock-btn")
+        """독 버튼 생성 — 아이콘 + 이름 + 실행 중 표시 점"""
+        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
 
-        icon = Gtk.Label(label=app_info["icon"])
+        inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
+        inner.add_css_class("dock-btn")
+
+        icon = Gtk.Label()
         icon.set_markup(f'<span size="20000">{app_info["icon"]}</span>')
-        name = Gtk.Label(label=app_info["name"][:6])
-        name.set_ellipsize(3)
+        name_lbl = Gtk.Label(label=app_info["name"][:6])
+        name_lbl.set_ellipsize(3)
 
-        box.append(icon)
-        box.append(name)
+        inner.append(icon)
+        inner.append(name_lbl)
+
+        # 실행 중 표시 점 (macOS 스타일 ●)
+        dot = Gtk.Label(label="")
+        dot.add_css_class("dock-running-dot")
+        dot.set_halign(Gtk.Align.CENTER)
+        self._dot_labels[app_info["cmd"]] = dot
+
+        outer.append(inner)
+        outer.append(dot)
 
         btn = Gtk.Button()
-        btn.set_child(box)
+        btn.set_child(outer)
         btn.add_css_class("dock-btn")
         cmd = app_info["cmd"]
         btn.connect("clicked", lambda *_: run_app(cmd))
         return btn
+
+    def _update_running_dots(self):
+        """백그라운드에서 실행 중 앱 확인 후 점 업데이트"""
+        def check():
+            states = {}
+            for app_info in APPS:
+                if app_info["fixed"]:
+                    states[app_info["cmd"]] = is_running(app_info["cmd"])
+            GLib.idle_add(self._apply_dots, states)
+        threading.Thread(target=check, daemon=True).start()
+        return True  # 반복 유지
+
+    def _apply_dots(self, states):
+        for cmd, running in states.items():
+            if cmd in self._dot_labels:
+                self._dot_labels[cmd].set_text("●" if running else "")
 
     def _on_launcher(self, *_):
         self.launcher_toggle_cb()
