@@ -29,7 +29,7 @@ jobs:
             echo "version=${{ github.event.inputs.version || '1.0.0' }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up QEMU (ARM64 emulation)
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
@@ -41,191 +41,108 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            squashfs-tools xorriso mtools isolinux
+            squashfs-tools xorriso
 
-      - name: Build ARM64 rootfs in Docker
+      - name: Build ARM64 rootfs (Ubuntu 24.04 in Docker)
         run: |
           VER="${{ steps.ver.outputs.version }}"
           mkdir -p build/rootfs
 
-          # Copy IgnisOS app files into Docker context
-          mkdir -p /tmp/ignis-ctx
-          cp -r ignis-shell ignis-settings ignis-files ignis-calc \
-                ignis-terminal ignis-oobe ignis-recovery \
-                rootfs config scripts /tmp/ignis-ctx/
-          cp -r uptime-kernel /tmp/ignis-ctx/
+          cat > /tmp/Dockerfile.ignis <<'DOCKEREOF'
+FROM --platform=linux/arm64 ubuntu:24.04
 
-          cat > /tmp/ignis-ctx/Dockerfile <<'DOCKEREOF'
-          FROM --platform=linux/arm64 ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
 
-          ENV DEBIAN_FRONTEND=noninteractive
-          ENV IGNIS_VERSION=IGNIS_VER_PLACEHOLDER
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    linux-image-generic \
+    network-manager \
+    sudo curl wget vim nano htop git \
+    ca-certificates locales tzdata \
+    python3 python3-pip python3-gi python3-gi-cairo \
+    gir1.2-gtk-4.0 gir1.2-adw-1 \
+    libgtk-4-dev libadwaita-1-dev \
+    gcc make \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-          # System packages
-          RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-            linux-image-generic \
-            linux-firmware \
-            network-manager \
-            sudo curl wget vim nano htop git \
-            ca-certificates locales tzdata \
-            python3 python3-pip python3-gi python3-gi-cairo \
-            gir1.2-gtk-4.0 gir1.2-adw-1 \
-            libgtk-4-dev libadwaita-1-dev \
-            gcc make \
-            && rm -rf /var/lib/apt/lists/*
+RUN locale-gen en_US.UTF-8 ko_KR.UTF-8 && update-locale LANG=en_US.UTF-8
 
-          # Locale
-          RUN locale-gen en_US.UTF-8 ko_KR.UTF-8 ja_JP.UTF-8 \
-            && update-locale LANG=en_US.UTF-8
+RUN useradd -m -s /bin/bash -G sudo ignis 2>/dev/null || true && \
+    echo "ignis:ignis" | chpasswd && \
+    echo "root:ignis" | chpasswd
 
-          # Default user
-          RUN useradd -m -s /bin/bash -G sudo ignis 2>/dev/null || true \
-            && echo "ignis:ignis" | chpasswd \
-            && echo "root:ignis" | chpasswd
+COPY ignis-shell     /usr/share/ignis/ignis-shell/
+COPY ignis-settings  /usr/share/ignis/ignis-settings/
+COPY ignis-files     /usr/share/ignis/ignis-files/
+COPY ignis-calc      /usr/share/ignis/ignis-calc/
+COPY ignis-terminal  /usr/share/ignis/ignis-terminal/
+COPY ignis-oobe      /usr/share/ignis/ignis-oobe/
+COPY ignis-recovery  /usr/share/ignis/ignis-recovery/
 
-          # Copy IgnisOS apps
-          COPY ignis-shell     /usr/share/ignis/ignis-shell/
-          COPY ignis-settings  /usr/share/ignis/ignis-settings/
-          COPY ignis-files     /usr/share/ignis/ignis-files/
-          COPY ignis-calc      /usr/share/ignis/ignis-calc/
-          COPY ignis-terminal  /usr/share/ignis/ignis-terminal/
-          COPY ignis-oobe      /usr/share/ignis/ignis-oobe/
-          COPY ignis-recovery  /usr/share/ignis/ignis-recovery/
+RUN for app in shell settings files calc terminal oobe; do \
+      printf '#!/usr/bin/env bash\nexec python3 /usr/share/ignis/ignis-%s/%s.py "$@"\n' \
+        "$app" "$app" > /usr/local/bin/ignis-$app && \
+      chmod +x /usr/local/bin/ignis-$app; \
+    done && \
+    install -m755 /usr/share/ignis/ignis-recovery/recovery.sh \
+                  /usr/local/bin/ignis-recovery
 
-          # Launcher scripts
-          RUN for app in shell settings files calc terminal oobe; do \
-                printf '#!/usr/bin/env bash\nexec python3 /usr/share/ignis/ignis-%s/%s.py "$@"\n' \
-                  "$app" "$app" > /usr/local/bin/ignis-$app; \
-                chmod +x /usr/local/bin/ignis-$app; \
-              done
+COPY uptime-kernel/uptime_kernel.c /tmp/uk.c
+RUN gcc -O2 -static -o /usr/local/bin/uptime-kernel /tmp/uk.c -lm 2>/dev/null || \
+    gcc -O2 -o /usr/local/bin/uptime-kernel /tmp/uk.c -lm && rm /tmp/uk.c
 
-          # Recovery
-          COPY ignis-recovery/recovery.sh /usr/local/bin/ignis-recovery
-          RUN chmod +x /usr/local/bin/ignis-recovery
+COPY rootfs/etc/os-release /etc/os-release
+COPY rootfs/etc/motd       /etc/motd
+RUN echo "ignis" > /etc/hostname
 
-          # Uptime Kernel (build inside ARM64 container)
-          COPY uptime-kernel /tmp/uptime-kernel/
-          RUN gcc -O2 -static -o /usr/local/bin/uptime-kernel \
-                /tmp/uptime-kernel/uptime_kernel.c -lm 2>/dev/null \
-              || gcc -O2 -o /usr/local/bin/uptime-kernel \
-                /tmp/uptime-kernel/uptime_kernel.c -lm \
-              && rm -rf /tmp/uptime-kernel
+RUN mkdir -p /etc/xdg/autostart && \
+    printf '[Desktop Entry]\nType=Application\nName=Ignis Shell\nExec=/usr/local/bin/ignis-shell\nX-GNOME-Autostart-enabled=true\n' \
+      > /etc/xdg/autostart/ignis-shell.desktop
 
-          # OS branding
-          COPY rootfs/etc/os-release /etc/os-release
-          COPY rootfs/etc/motd       /etc/motd
-          RUN echo "ignis" > /etc/hostname
+CMD ["/bin/bash"]
+DOCKEREOF
 
-          # Desktop autostart
-          RUN mkdir -p /etc/xdg/autostart && \
-            printf '[Desktop Entry]\nType=Application\nName=Ignis Shell\nExec=/usr/local/bin/ignis-shell\nX-GNOME-Autostart-enabled=true\n' \
-              > /etc/xdg/autostart/ignis-shell.desktop && \
-            printf '[Desktop Entry]\nType=Application\nName=IgnisOS Setup\nExec=/usr/local/bin/ignis-oobe\nX-GNOME-Autostart-enabled=true\n' \
-              > /etc/xdg/autostart/ignis-oobe.desktop
-
-          RUN mkdir -p /usr/share/applications && \
-            for entry in "ignis-terminal;터미널;ignis-terminal" \
-                         "ignis-calc;계산기;ignis-calc" \
-                         "ignis-files;파일;ignis-files" \
-                         "ignis-settings;설정;ignis-settings"; do \
-              IFS=';' read -r id name cmd <<< "$entry"; \
-              printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=%s\nExec=%s\nCategories=System;\n' \
-                "$name" "$cmd" > /usr/share/applications/${id}.desktop; \
-            done
-
-          CMD ["/bin/bash"]
-          DOCKEREOF
-
-          # Replace version placeholder
-          sed -i "s/IGNIS_VER_PLACEHOLDER/${VER}/g" /tmp/ignis-ctx/Dockerfile
-
-          # Build ARM64 image and export rootfs
           docker buildx build \
             --platform linux/arm64 \
             --load \
-            -t ignisос-rootfs:latest \
-            /tmp/ignis-ctx/
+            -t ignis-rootfs:build \
+            -f /tmp/Dockerfile.ignis \
+            .
 
-          # Export the container filesystem
-          CID=$(docker create --platform linux/arm64 ignisос-rootfs:latest)
+          CID=$(docker create --platform linux/arm64 ignis-rootfs:build)
           docker export "$CID" | sudo tar -x -C build/rootfs
           docker rm "$CID"
-
-          echo "Rootfs size: $(du -sh build/rootfs | cut -f1)"
+          echo "Rootfs: $(du -sh build/rootfs | cut -f1)"
 
       - name: Build ISO
         run: |
           VER="${{ steps.ver.outputs.version }}"
-          ISO_DIR="build/iso"
-          ROOTFS="build/rootfs"
-          mkdir -p "${ISO_DIR}/boot/grub" "${ISO_DIR}/EFI/BOOT"
+          ISO_DIR=build/iso
+          ROOTFS=build/rootfs
+          mkdir -p "${ISO_DIR}/boot/grub"
 
-          # Build Uptime Kernel static binary for recovery (already in rootfs)
-          cp "${ROOTFS}/usr/local/bin/uptime-kernel" \
-             "${ISO_DIR}/boot/uptime-kernel-init" 2>/dev/null || true
-
-          # Kernel + initrd from rootfs
+          # kernel + initrd
           VMLINUZ=$(ls "${ROOTFS}/boot/vmlinuz-"* 2>/dev/null | tail -1)
-          INITRD=$(ls "${ROOTFS}/boot/initrd.img-"* 2>/dev/null | tail -1)
-          if [[ -f "${VMLINUZ}" ]]; then
-            cp "${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
-            echo "Kernel: ${VMLINUZ}"
-          else
-            echo "WARNING: no kernel found in rootfs"
-          fi
-          if [[ -f "${INITRD}" ]]; then
-            cp "${INITRD}" "${ISO_DIR}/boot/initrd.img"
-            echo "Initrd: ${INITRD}"
-          fi
+          INITRD=$(ls  "${ROOTFS}/boot/initrd.img-"* 2>/dev/null | tail -1)
+          [[ -f "${VMLINUZ}" ]] && cp "${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
+          [[ -f "${INITRD}"  ]] && cp "${INITRD}"  "${ISO_DIR}/boot/initrd.img"
 
-          # Squashfs
-          echo "Building squashfs..."
+          # squashfs
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/boot/filesystem.squashfs" \
-            -comp xz -e boot -noappend 2>/dev/null
-          echo "Squashfs size: $(du -sh ${ISO_DIR}/boot/filesystem.squashfs | cut -f1)"
+            -comp xz -e boot -e proc -e sys -noappend
+          echo "Squashfs: $(du -sh ${ISO_DIR}/boot/filesystem.squashfs | cut -f1)"
 
-          # GRUB config
+          # grub config
           cp config/grub/grub.cfg "${ISO_DIR}/boot/grub/grub.cfg"
 
-          # GRUB EFI for ARM64 — pull from ARM64 Docker image
-          docker run --rm --platform linux/arm64 \
-            -v "$(pwd)/${ISO_DIR}/EFI/BOOT:/out" \
-            ignisос-rootfs:latest \
-            bash -c "
-              apt-get install -y grub-efi-arm64 grub-efi-arm64-bin 2>/dev/null || true;
-              grub-mkimage \
-                -d /usr/lib/grub/arm64-efi \
-                -o /out/BOOTAA64.EFI \
-                -O arm64-efi \
-                -p /boot/grub \
-                fat part_gpt part_msdos normal boot linux \
-                configfile loopback chain efi_gop \
-                squash4 search search_label search_fs_uuid 2>/dev/null || true
-            " 2>&1 || echo "GRUB EFI step skipped"
+          # ISO
+          xorriso -as mkisofs -r -V "IgnisOS_${VER}" \
+            -o "build/IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
+          echo "ISO: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
 
-          # Build ISO
-          xorriso -as mkisofs \
-            -r \
-            -V "IgnisOS_${VER}" \
-            --efi-boot EFI/BOOT/BOOTAA64.EFI \
-            -efi-boot-part --efi-boot-image \
-            -o "build/IgnisOS-${VER}-arm64.iso" \
-            "${ISO_DIR}" 2>/dev/null \
-          || xorriso -as mkisofs \
-            -r \
-            -V "IgnisOS_${VER}" \
-            -o "build/IgnisOS-${VER}-arm64.iso" \
-            "${ISO_DIR}"
-
-          echo "ISO built: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
-
-      - name: Prepare release files
-        run: |
-          VER="${{ steps.ver.outputs.version }}"
           cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-live-arm64.iso"
           cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-install-arm64.iso"
 
-      - name: Upload ISO as artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: IgnisOS-${{ steps.ver.outputs.version }}-arm64
@@ -248,15 +165,6 @@ jobs:
             1. Download [UTM](https://mac.getutm.app/)
             2. `+` → **Virtualize** → **Linux**
             3. Select ISO → RAM 2048MB+ → 20GB disk → Save → Play
-
-            ### Run in QEMU
-            ```bash
-            qemu-system-aarch64 -M virt -cpu cortex-a72 -m 2048 \
-              -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-              -drive if=virtio,format=raw,file=IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso \
-              -device virtio-gpu-pci -display sdl \
-              -device usb-kbd -device usb-mouse -usb
-            ```
           files: |
             IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
             IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
