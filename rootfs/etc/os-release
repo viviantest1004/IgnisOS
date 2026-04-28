@@ -1,0 +1,12 @@
+NAME="IgnisOS"
+VERSION="1.0.0 LTS"
+ID=ignis
+ID_LIKE=ubuntu
+PRETTY_NAME="IgnisOS 1.0.0 LTS (Ember)"
+VERSION_ID="1.0"
+HOME_URL="https://github.com/viviantest1004/IgnisOS"
+SUPPORT_URL="https://github.com/viviantest1004/IgnisOS/issues"
+BUG_REPORT_URL="https://github.com/viviantest1004/IgnisOS/issues"
+LOGO=ignis-logo
+ANSI_COLOR="1;31"
+UBUNTU_CODENAME=noble
