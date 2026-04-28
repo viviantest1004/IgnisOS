@@ -49,6 +49,7 @@ jobs:
 
       - name: Build rootfs with debootstrap
         run: |
+          mkdir -p build/rootfs
           sudo debootstrap \
             --arch=arm64 \
             --variant=minbase \
