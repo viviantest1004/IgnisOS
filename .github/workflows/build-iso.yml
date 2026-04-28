@@ -95,7 +95,7 @@ jobs:
             network-manager \
             fonts-noto fonts-ubuntu \
             sudo ca-certificates locales tzdata \
-            build-essential notify-send
+            build-essential libnotify-bin
 
           # Locale
           locale-gen en_US.UTF-8 ko_KR.UTF-8
