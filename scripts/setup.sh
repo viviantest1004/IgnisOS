@@ -101,3 +101,22 @@ echo "  ignis-terminal  → 터미널"
 echo "  ignis-settings  → 설정"
 echo "  ignis-files     → 파일 관리자"
 echo "  ignis-calc      → 계산기"
+
+# OOBE (첫 실행 설정 마법사)
+log "Installing OOBE (first-run wizard)..."
+cp -r ignis-oobe "$INSTALL_DIR/"
+cat > "${BIN_DIR}/ignis-oobe" <<BEOF
+#!/usr/bin/env bash
+exec python3 ${INSTALL_DIR}/ignis-oobe/oobe.py "\$@"
+BEOF
+chmod +x "${BIN_DIR}/ignis-oobe"
+
+# OOBE 자동 시작 (첫 부팅에만)
+cat > /etc/xdg/autostart/ignis-oobe.desktop <<DEOF
+[Desktop Entry]
+Type=Application
+Name=IgnisOS Setup
+Exec=/usr/local/bin/ignis-oobe
+X-GNOME-Autostart-enabled=true
+DEOF
+ok "OOBE installed"
