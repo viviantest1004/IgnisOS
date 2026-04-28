@@ -3,14 +3,15 @@
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
-# apt sources
+# apt sources (Ubuntu 24.04 uses deb822 format in sources.list.d)
+rm -f /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list 2>/dev/null || true
 cat > /etc/apt/sources.list << 'EOF'
 deb http://ports.ubuntu.com/ubuntu-ports noble main universe restricted multiverse
 deb http://ports.ubuntu.com/ubuntu-ports noble-updates main universe restricted multiverse
 deb http://ports.ubuntu.com/ubuntu-ports noble-security main universe restricted multiverse
 EOF
 
-apt-get update -qq
+apt-get update -qq 2>&1 | tail -5
 
 # Core packages
 apt-get install -y --no-install-recommends \
