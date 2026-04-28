@@ -13,8 +13,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -29,29 +29,21 @@ jobs:
             echo "version=${{ github.event.inputs.version || '1.0.0' }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Install host tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends squashfs-tools xorriso
+          sudo apt-get install -y --no-install-recommends squashfs-tools xorriso docker.io
+          sudo systemctl start docker || true
 
-      - name: Build ARM64 rootfs
+      - name: Build ARM64 rootfs (native, no QEMU)
         run: |
           mkdir -p build/rootfs
-          docker buildx build \
-            --platform linux/arm64 \
+          docker build \
             --load \
             -t ignis-rootfs:build \
             -f .github/Dockerfile.ignis \
             .
-          CID=$(docker create --platform linux/arm64 ignis-rootfs:build)
+          CID=$(docker create ignis-rootfs:build)
           docker export "$CID" | sudo tar -x -C build/rootfs
           docker rm "$CID"
           echo "Rootfs: $(du -sh build/rootfs | cut -f1)"
