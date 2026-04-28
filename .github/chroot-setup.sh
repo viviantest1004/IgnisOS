@@ -12,7 +12,7 @@ EOF
 
 apt-get update -qq
 
-# Install packages
+# Core packages
 apt-get install -y --no-install-recommends \
     linux-image-generic \
     casper \
@@ -23,8 +23,7 @@ apt-get install -y --no-install-recommends \
     network-manager \
     fonts-noto fonts-ubuntu \
     sudo ca-certificates locales tzdata \
-    libnotify-bin \
-    build-essential
+    libnotify-bin build-essential
 
 # Locale
 locale-gen en_US.UTF-8 ko_KR.UTF-8
@@ -45,7 +44,7 @@ LAUNCHER
     chmod +x /usr/local/bin/ignis-${app}
 done
 
-# Recovery script
+# Recovery
 if [ -f /usr/share/ignis/ignis-recovery/recovery.sh ]; then
     install -m755 /usr/share/ignis/ignis-recovery/recovery.sh \
         /usr/local/bin/ignis-recovery
@@ -57,7 +56,7 @@ if [ -f /usr/share/ignis/uptime-kernel/uptime_kernel.c ]; then
         /usr/share/ignis/uptime-kernel/uptime_kernel.c -lm || true
 fi
 
-# Autostart ignis-shell
+# Autostart
 mkdir -p /etc/xdg/autostart
 cat > /etc/xdg/autostart/ignis-shell.desktop << 'EOF'
 [Desktop Entry]

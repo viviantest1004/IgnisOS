@@ -27,7 +27,6 @@
       overflow-x: hidden;
     }
 
-    /* ── hero bg ── */
     body::before {
       content: '';
       position: fixed;
@@ -41,7 +40,6 @@
 
     .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── nav ── */
     nav {
       display: flex; align-items: center; justify-content: space-between;
       padding: 20px 0;
@@ -49,81 +47,45 @@
     }
     .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
     .logo span { color: var(--accent); }
-    nav a {
-      color: var(--muted); text-decoration: none; font-size: 14px;
-      transition: color .2s;
-    }
+    nav a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color .2s; }
     nav a:hover { color: var(--text); }
     .nav-links { display: flex; gap: 24px; }
 
-    /* ── hero ── */
-    .hero {
-      text-align: center;
-      padding: 80px 0 60px;
-    }
+    .hero { text-align: center; padding: 80px 0 60px; }
     .hero-badge {
       display: inline-block;
       background: rgba(232,93,4,0.15);
       border: 1px solid rgba(232,93,4,0.35);
       border-radius: 100px;
-      padding: 6px 18px;
-      font-size: 13px;
-      color: var(--accent2);
-      letter-spacing: 0.5px;
+      padding: 6px 18px; font-size: 13px;
+      color: var(--accent2); letter-spacing: 0.5px;
       margin-bottom: 28px;
       animation: fadeInDown .5s ease both;
     }
     .hero h1 {
       font-size: clamp(40px, 7vw, 76px);
-      font-weight: 900;
-      line-height: 1.08;
-      letter-spacing: -2px;
+      font-weight: 900; line-height: 1.08; letter-spacing: -2px;
       animation: fadeInDown .5s .1s ease both;
     }
     .hero h1 .fire { color: var(--accent); }
     .hero p {
-      margin: 20px auto 0;
-      max-width: 580px;
-      font-size: 18px;
-      color: var(--muted);
-      line-height: 1.6;
+      margin: 20px auto 0; max-width: 580px;
+      font-size: 18px; color: var(--muted); line-height: 1.6;
       animation: fadeInDown .5s .18s ease both;
     }
 
-    /* ── download cards ── */
     .dl-section { padding: 20px 0 80px; }
-    .dl-section h2 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      animation: fadeInUp .5s .25s ease both;
-    }
-    .dl-subtitle {
-      text-align: center;
-      color: var(--muted);
-      font-size: 15px;
-      margin-bottom: 40px;
-      animation: fadeInUp .5s .3s ease both;
-    }
+    .dl-section h2 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .dl-subtitle { text-align: center; color: var(--muted); font-size: 15px; margin-bottom: 40px; }
 
-    .dl-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
+    .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 
     .dl-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease,
-                  border-color .2s ease;
-      animation: fadeInUp .5s .35s ease both;
+      border-radius: 20px; padding: 28px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, border-color .2s ease;
     }
     .dl-card:hover {
       transform: translateY(-4px);
@@ -140,97 +102,51 @@
       display: inline-block;
       background: rgba(232,93,4,0.18);
       border: 1px solid rgba(232,93,4,0.35);
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 11px;
-      color: var(--accent2);
-      font-weight: 600;
-      letter-spacing: .5px;
-      text-transform: uppercase;
-      width: fit-content;
+      border-radius: 6px; padding: 3px 10px;
+      font-size: 11px; color: var(--accent2); font-weight: 600;
+      letter-spacing: .5px; text-transform: uppercase; width: fit-content;
     }
     .dl-card h3 { font-size: 20px; font-weight: 700; }
     .dl-card p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
-    .dl-meta {
-      display: flex; gap: 16px; flex-wrap: wrap;
-    }
-    .dl-meta span {
-      font-size: 13px; color: var(--muted);
-    }
-    .dl-meta span strong { color: var(--text); }
+    .dl-meta { display: flex; gap: 16px; flex-wrap: wrap; }
     .dl-meta .tag {
-      background: rgba(255,255,255,0.06);
+      font-size: 13px; background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      padding: 2px 8px;
+      border-radius: 6px; padding: 2px 8px; color: var(--text);
     }
 
     .btn-dl {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg, #e85d04, #fb923c);
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 15px;
-      padding: 14px 24px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease,
-                  filter .15s ease;
+      color: #fff; text-decoration: none; font-weight: 700; font-size: 15px;
+      padding: 14px 24px; border-radius: 12px; border: none; cursor: pointer;
+      transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, filter .15s ease;
       margin-top: auto;
     }
-    .btn-dl:hover {
-      transform: scale(1.04);
-      box-shadow: 0 8px 24px rgba(232,93,4,0.4);
-      filter: brightness(1.08);
-    }
+    .btn-dl:hover { transform: scale(1.04); box-shadow: 0 8px 24px rgba(232,93,4,0.4); filter: brightness(1.08); }
     .btn-dl:active { transform: scale(0.97); }
     .btn-dl.secondary {
-      background: transparent;
-      border: 1px solid rgba(232,93,4,0.5);
-      color: var(--accent2);
+      background: transparent; border: 1px solid rgba(232,93,4,0.5); color: var(--accent2);
     }
-    .btn-dl.secondary:hover {
-      background: rgba(232,93,4,0.12);
-      box-shadow: 0 8px 24px rgba(232,93,4,0.15);
-    }
+    .btn-dl.secondary:hover { background: rgba(232,93,4,0.12); box-shadow: 0 8px 24px rgba(232,93,4,0.15); }
 
-    /* ── arch notice ── */
     .arch-notice {
       background: rgba(248,113,113,0.07);
       border: 1px solid rgba(248,113,113,0.25);
-      border-radius: 14px;
-      padding: 18px 22px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
+      border-radius: 14px; padding: 18px 22px;
+      display: flex; gap: 12px; align-items: flex-start;
       margin-bottom: 40px;
-      animation: fadeInUp .5s .28s ease both;
     }
     .arch-notice .icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
     .arch-notice p { font-size: 14px; color: #fca5a5; line-height: 1.55; }
     .arch-notice strong { color: var(--danger); }
 
-    /* ── features ── */
     .features { padding: 0 0 80px; }
-    .features h2 {
-      text-align: center; font-size: 28px; font-weight: 700;
-      margin-bottom: 36px;
-    }
-    .feat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
+    .features h2 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 36px; }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
     .feat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px 20px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px 20px;
       transition: transform .18s ease, border-color .18s ease;
     }
     .feat-card:hover { transform: translateY(-2px); border-color: rgba(232,93,4,0.45); }
@@ -238,55 +154,47 @@
     .feat-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
     .feat-card p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-    /* ── quick-start ── */
+    .apps-section { padding: 0 0 80px; }
+    .apps-section h2 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 36px; }
+    .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+    .app-chip {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 12px;
+      text-align: center; font-size: 13px;
+      transition: border-color .18s ease, transform .18s ease;
+    }
+    .app-chip:hover { border-color: rgba(232,93,4,0.45); transform: translateY(-2px); }
+    .app-chip .icon { font-size: 22px; display: block; margin-bottom: 6px; }
+
     .quickstart { padding: 0 0 80px; }
     .quickstart h2 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
     pre {
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 20px 24px;
-      font-size: 13.5px;
-      line-height: 1.7;
-      color: #a5f3fc;
-      overflow-x: auto;
-      margin-bottom: 20px;
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 20px 24px;
+      font-size: 13.5px; line-height: 1.7; color: #a5f3fc;
+      overflow-x: auto; margin-bottom: 20px;
     }
     pre .comment { color: #64748b; }
     pre .cmd     { color: #86efac; }
 
-    /* ── compat ── */
     .compat { padding: 0 0 80px; }
     .compat h2 { font-size: 28px; font-weight: 700; margin-bottom: 24px; text-align: center; }
-    .compat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-    }
+    .compat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
     .compat-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px 16px;
-      text-align: center;
-      font-size: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 16px; text-align: center; font-size: 14px;
       transition: border-color .18s ease;
     }
     .compat-item:hover { border-color: rgba(232,93,4,0.45); }
     .compat-item .icon { font-size: 24px; display: block; margin-bottom: 8px; }
 
-    /* ── footer ── */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
+      border-top: 1px solid var(--border); padding: 32px 0;
+      text-align: center; color: var(--muted); font-size: 13px;
     }
     footer a { color: var(--accent2); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
-    /* ── animations ── */
     @keyframes fadeInDown {
       from { opacity: 0; transform: translateY(-16px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -304,8 +212,8 @@
 </head>
 <body>
 
-<!-- ── Navigation ── -->
 <div class="wrap">
+  <!-- Nav -->
   <nav>
     <div class="logo">🔥&nbsp;<span>Ignis</span>OS</div>
     <div class="nav-links">
@@ -315,68 +223,66 @@
     </div>
   </nav>
 
-  <!-- ── Hero ── -->
+  <!-- Hero -->
   <section class="hero">
-    <div class="hero-badge">⚡ ARM64 · Ubuntu 24.04 Base · MIT License</div>
+    <div class="hero-badge">⚡ v1.3 · ARM64 · Ubuntu 24.04 Base · MIT License</div>
     <h1>The <span class="fire">Ignis</span>OS<br>Download Hub</h1>
-    <p>A fully AI-built, open-source ARM64 Linux distribution with a custom desktop,
-       Uptime Kernel, and multilingual support.</p>
+    <p>A fully AI-built, open-source ARM64 Linux distribution with a custom GTK4 desktop,
+       10+ built-in apps, 18-panel settings, and UEFI boot support.</p>
   </section>
 
-  <!-- ── Download ── -->
+  <!-- Download -->
   <section class="dl-section">
-    <h2>Download IgnisOS 1.0.0</h2>
+    <h2>Download IgnisOS 1.3</h2>
     <p class="dl-subtitle">ARM64 (aarch64) only — Raspberry Pi, Apple M-series (UTM), QEMU, AWS Graviton</p>
 
     <div class="arch-notice">
       <div class="icon">⚠️</div>
       <p><strong>ARM64 architecture only.</strong>
-         These ISOs do <strong>not</strong> run on x86 or x86_64 machines.
-         Compatible hardware: Raspberry Pi 4/5, Apple M1/M2/M3/M4 (via UTM),
-         QEMU ARM64 VM, AWS Graviton, Ampere Altra.</p>
+         Does <strong>not</strong> run on x86/x86_64 machines.
+         Compatible: Raspberry Pi 4/5, Apple M1/M2/M3/M4 (UTM), QEMU ARM64, AWS Graviton, Ampere Altra.</p>
     </div>
 
     <div class="dl-grid">
       <!-- Live ISO -->
       <div class="dl-card featured">
-        <div class="dl-badge">Live</div>
-        <h3>IgnisOS 1.0.0 Live ARM64</h3>
-        <p>Boot directly from USB without installing. Try IgnisOS with zero commitment.</p>
+        <div class="dl-badge">Live · UEFI</div>
+        <h3>IgnisOS 1.3 ARM64</h3>
+        <p>Boot directly from USB or VM. Full IgnisOS desktop — no installation needed. UEFI bootable.</p>
         <div class="dl-meta">
-          <span class="tag"><strong>~2.1 GB</strong></span>
-          <span class="tag"><strong>ARM64</strong></span>
-          <span class="tag">Ubuntu 24.04 base</span>
+          <span class="tag">~1.5 GB</span>
+          <span class="tag">ARM64</span>
+          <span class="tag">Ubuntu 24.04</span>
         </div>
         <a class="btn-dl"
-           href="https://github.com/viviantest1004/IgnisOS/releases/download/v1.0.0/IgnisOS-1.0.0-live-arm64.iso">
-          ⬇ Download Live ISO
+           href="https://github.com/viviantest1004/IgnisOS/releases/latest">
+          ⬇ Download ISO (GitHub Releases)
         </a>
       </div>
 
-      <!-- Install ISO -->
+      <!-- Build locally -->
       <div class="dl-card">
-        <div class="dl-badge">Install</div>
-        <h3>IgnisOS 1.0.0 Install ARM64</h3>
-        <p>Full installer ISO. Installs IgnisOS permanently to your ARM64 device.</p>
+        <div class="dl-badge">Mac / Linux</div>
+        <h3>Build Locally</h3>
+        <p>Apple Silicon Mac or Linux ARM64? Build the ISO locally with one command using Docker.</p>
         <div class="dl-meta">
-          <span class="tag"><strong>~2.8 GB</strong></span>
-          <span class="tag"><strong>ARM64</strong></span>
-          <span class="tag">Full desktop</span>
+          <span class="tag">Docker required</span>
+          <span class="tag">~20 min</span>
         </div>
         <a class="btn-dl secondary"
-           href="https://github.com/viviantest1004/IgnisOS/releases/download/v1.0.0/IgnisOS-1.0.0-install-arm64.iso">
-          ⬇ Download Install ISO
+           href="https://github.com/viviantest1004/IgnisOS">
+          📖 Build Instructions
         </a>
       </div>
 
       <!-- Source -->
       <div class="dl-card">
         <div class="dl-badge">Source</div>
-        <h3>Build from Source</h3>
-        <p>Clone the repo and run <code>sudo ./build.sh</code> on any Ubuntu/Debian ARM64 host.</p>
+        <h3>Open Source</h3>
+        <p>100% MIT-licensed. Clone and explore the full codebase — every app, every script.</p>
         <div class="dl-meta">
           <span class="tag">MIT License</span>
-          <span class="tag">Open Source</span>
+          <span class="tag">100% AI-Built</span>
         </div>
         <a class="btn-dl secondary"
            href="https://github.com/viviantest1004/IgnisOS">
@@ -386,73 +292,106 @@
     </div>
   </section>
 
-  <!-- ── Fast Download ── -->
+  <!-- Fast Download -->
   <section style="padding: 0 0 60px;">
     <h2 style="font-size:28px;font-weight:700;margin-bottom:24px;">⚡ 빠른 다운로드</h2>
     <div style="background:rgba(232,93,4,0.07);border:1px solid rgba(232,93,4,0.3);border-radius:16px;padding:24px 28px;margin-bottom:16px;">
-      <p style="color:#fb923c;font-weight:700;margin-bottom:12px;">GitHub 직접 다운로드가 느리다면 — aria2로 16배 빠르게 받으세요</p>
+      <p style="color:#fb923c;font-weight:700;margin-bottom:12px;">GitHub 다운로드가 느리다면 — aria2로 16배 빠르게</p>
       <pre style="margin:0;"><span class="comment"># macOS</span>
 <span class="cmd">brew install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/download/v1.0.0/IgnisOS-1.0.0-live-arm64.iso</span>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.3.2-arm64.iso</span>
 
 <span class="comment"># Linux</span>
 <span class="cmd">sudo apt install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/download/v1.0.0/IgnisOS-1.0.0-live-arm64.iso</span>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.3.2-arm64.iso</span>
 
 <span class="comment"># Windows (PowerShell)</span>
 <span class="cmd">winget install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/download/v1.0.0/IgnisOS-1.0.0-live-arm64.iso</span></pre>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.3.2-arm64.iso</span></pre>
     </div>
-    <p style="font-size:13px;color:var(--muted);">또는 브라우저 확장 <strong style="color:var(--text);">IDM / FDM / Motrix</strong> 사용 시 자동으로 빠르게 다운로드됩니다.</p>
   </section>
 
-  <!-- ── Quick Start ── -->
+  <!-- Apps -->
+  <section class="apps-section">
+    <h2>포함된 앱</h2>
+    <div class="apps-grid">
+      <div class="app-chip"><span class="icon">🖥️</span>터미널</div>
+      <div class="app-chip"><span class="icon">🧮</span>계산기</div>
+      <div class="app-chip"><span class="icon">📂</span>파일 관리자</div>
+      <div class="app-chip"><span class="icon">⚙️</span>설정</div>
+      <div class="app-chip"><span class="icon">📝</span>메모장</div>
+      <div class="app-chip"><span class="icon">🕐</span>시계</div>
+      <div class="app-chip"><span class="icon">📊</span>작업 관리자</div>
+      <div class="app-chip"><span class="icon">🌐</span>Firefox</div>
+      <div class="app-chip"><span class="icon">🛠️</span>복구 모드</div>
+      <div class="app-chip"><span class="icon">🎨</span>테마 설정</div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
   <section class="quickstart">
     <h2>Quick Start</h2>
-    <pre><span class="comment"># Flash to USB (Linux / macOS)</span>
-<span class="cmd">sudo dd if=IgnisOS-1.0.0-live-arm64.iso of=/dev/sdX bs=4M status=progress</span>
+    <pre><span class="comment"># Apple Silicon Mac — 로컬 빌드 (Docker 필요)</span>
+<span class="cmd">git clone https://github.com/viviantest1004/IgnisOS.git
+cd IgnisOS
+./build-local.sh 1.3.2
+# → dist/IgnisOS-1.3.2-arm64.iso 생성 (20~30분)</span>
 
-<span class="comment"># Run in QEMU ARM64 VM</span>
+<span class="comment"># UTM에서 실행 (Apple M-series)</span>
+<span class="cmd">1. UTM 설치 → https://mac.getutm.app
+2. + → Virtualize → Linux → ISO 선택
+3. RAM 2048MB+ · 20GB 디스크 → 저장 → 실행</span>
+
+<span class="comment"># QEMU ARM64 VM</span>
 <span class="cmd">qemu-system-aarch64 \
   -M virt -cpu cortex-a72 -m 2048 \
   -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-  -drive if=virtio,format=raw,file=IgnisOS-1.0.0-live-arm64.iso \
+  -drive if=virtio,format=raw,file=IgnisOS-1.3.2-arm64.iso \
   -device virtio-gpu-pci -display sdl \
   -device usb-kbd -device usb-mouse -usb</span>
 
-<span class="comment"># Install on existing Ubuntu ARM64</span>
-<span class="cmd">git clone https://github.com/viviantest1004/IgnisOS.git
-cd IgnisOS && sudo ./scripts/setup.sh</span></pre>
+<span class="comment"># USB 부팅 (Linux/macOS)</span>
+<span class="cmd">sudo dd if=IgnisOS-1.3.2-arm64.iso of=/dev/sdX bs=4M status=progress</span></pre>
   </section>
 
-  <!-- ── Features ── -->
+  <!-- Features -->
   <section class="features">
     <h2>What's Inside</h2>
     <div class="feat-grid">
       <div class="feat-card">
         <div class="icon">🔥</div>
         <h4>Ignis Shell</h4>
-        <p>Custom GTK4 desktop — top bar, right dock, app launcher, dark/light mode.</p>
+        <p>Custom GTK4 desktop — top bar, right dock, app launcher, dark/light mode, spring animations.</p>
       </div>
       <div class="feat-card">
         <div class="icon">⚡</div>
-        <h4>Uptime Kernel</h4>
-        <p>C-written boot shell with file management, calculator, and system info.</p>
-      </div>
-      <div class="feat-card">
-        <div class="icon">🌐</div>
-        <h4>Multilingual</h4>
-        <p>English, 한국어, 日本語 with live switching from the top bar.</p>
+        <h4>UEFI Boot</h4>
+        <p>Proper UEFI boot with BOOTAA64.EFI + GRUB. Works in UTM, QEMU, real ARM64 hardware.</p>
       </div>
       <div class="feat-card">
         <div class="icon">⚙️</div>
-        <h4>Full Settings</h4>
-        <p>12-panel settings app — WiFi, Bluetooth, Display, Sound, Users, Security & more.</p>
+        <h4>18-Panel Settings</h4>
+        <p>WiFi, Bluetooth, Display, Sound, Users, Security, Keyboard, Mouse, Printer, Storage & more.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">📝</div>
+        <h4>메모장 (Notepad)</h4>
+        <p>Multi-tab text editor with open/save, font size control, and line/column status bar.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">🕐</div>
+        <h4>시계 (Clock)</h4>
+        <p>Clock, stopwatch, countdown timer, and alarm — all in one app.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">📊</div>
+        <h4>작업 관리자</h4>
+        <p>Real-time CPU, memory, uptime monitor with process list and kill button.</p>
       </div>
       <div class="feat-card">
         <div class="icon">🛠️</div>
         <h4>Recovery Mode</h4>
-        <p>9-option recovery — fsck, network repair, GRUB repair, factory reset.</p>
+        <p>9-option recovery — fsck, network repair, GRUB repair, factory reset, rescue shell.</p>
       </div>
       <div class="feat-card">
         <div class="icon">🤖</div>
@@ -462,41 +401,23 @@ cd IgnisOS && sudo ./scripts/setup.sh</span></pre>
     </div>
   </section>
 
-  <!-- ── Compatible Hardware ── -->
+  <!-- Compat -->
   <section class="compat">
     <h2>Compatible Hardware</h2>
     <div class="compat-grid">
-      <div class="compat-item">
-        <span class="icon">🍓</span>
-        Raspberry Pi 4 / 5
-      </div>
-      <div class="compat-item">
-        <span class="icon">🍎</span>
-        Apple M1 / M2 / M3<br><small>(via UTM)</small>
-      </div>
-      <div class="compat-item">
-        <span class="icon">☁️</span>
-        AWS Graviton
-      </div>
-      <div class="compat-item">
-        <span class="icon">🖥️</span>
-        QEMU ARM64 VM
-      </div>
-      <div class="compat-item">
-        <span class="icon">💻</span>
-        Ampere Altra
-      </div>
-      <div class="compat-item">
-        <span class="icon">🔲</span>
-        Any UEFI ARM64
-      </div>
+      <div class="compat-item"><span class="icon">🍓</span>Raspberry Pi 4 / 5</div>
+      <div class="compat-item"><span class="icon">🍎</span>Apple M1–M4<br><small>(via UTM)</small></div>
+      <div class="compat-item"><span class="icon">☁️</span>AWS Graviton</div>
+      <div class="compat-item"><span class="icon">🖥️</span>QEMU ARM64 VM</div>
+      <div class="compat-item"><span class="icon">💻</span>Ampere Altra</div>
+      <div class="compat-item"><span class="icon">🔲</span>Any UEFI ARM64</div>
     </div>
   </section>
 
-  <!-- ── Footer ── -->
+  <!-- Footer -->
   <footer>
     <p>
-      🔥 IgnisOS 1.0.0 &nbsp;·&nbsp;
+      🔥 IgnisOS 1.3 &nbsp;·&nbsp;
       <a href="https://github.com/viviantest1004/IgnisOS">GitHub</a> &nbsp;·&nbsp;
       MIT License &nbsp;·&nbsp;
       100% AI-Built by Claude Sonnet 4.6
