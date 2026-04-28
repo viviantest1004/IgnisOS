@@ -40,74 +40,17 @@ jobs:
       - name: Install host tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            squashfs-tools xorriso
+          sudo apt-get install -y --no-install-recommends squashfs-tools xorriso
 
-      - name: Build ARM64 rootfs (Ubuntu 24.04 in Docker)
+      - name: Build ARM64 rootfs
         run: |
-          VER="${{ steps.ver.outputs.version }}"
           mkdir -p build/rootfs
-
-          cat > /tmp/Dockerfile.ignis <<'DOCKEREOF'
-FROM --platform=linux/arm64 ubuntu:24.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    linux-image-generic \
-    network-manager \
-    sudo curl wget vim nano htop git \
-    ca-certificates locales tzdata \
-    python3 python3-pip python3-gi python3-gi-cairo \
-    gir1.2-gtk-4.0 gir1.2-adw-1 \
-    libgtk-4-dev libadwaita-1-dev \
-    gcc make \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN locale-gen en_US.UTF-8 ko_KR.UTF-8 && update-locale LANG=en_US.UTF-8
-
-RUN useradd -m -s /bin/bash -G sudo ignis 2>/dev/null || true && \
-    echo "ignis:ignis" | chpasswd && \
-    echo "root:ignis" | chpasswd
-
-COPY ignis-shell     /usr/share/ignis/ignis-shell/
-COPY ignis-settings  /usr/share/ignis/ignis-settings/
-COPY ignis-files     /usr/share/ignis/ignis-files/
-COPY ignis-calc      /usr/share/ignis/ignis-calc/
-COPY ignis-terminal  /usr/share/ignis/ignis-terminal/
-COPY ignis-oobe      /usr/share/ignis/ignis-oobe/
-COPY ignis-recovery  /usr/share/ignis/ignis-recovery/
-
-RUN for app in shell settings files calc terminal oobe; do \
-      printf '#!/usr/bin/env bash\nexec python3 /usr/share/ignis/ignis-%s/%s.py "$@"\n' \
-        "$app" "$app" > /usr/local/bin/ignis-$app && \
-      chmod +x /usr/local/bin/ignis-$app; \
-    done && \
-    install -m755 /usr/share/ignis/ignis-recovery/recovery.sh \
-                  /usr/local/bin/ignis-recovery
-
-COPY uptime-kernel/uptime_kernel.c /tmp/uk.c
-RUN gcc -O2 -static -o /usr/local/bin/uptime-kernel /tmp/uk.c -lm 2>/dev/null || \
-    gcc -O2 -o /usr/local/bin/uptime-kernel /tmp/uk.c -lm && rm /tmp/uk.c
-
-COPY rootfs/etc/os-release /etc/os-release
-COPY rootfs/etc/motd       /etc/motd
-RUN echo "ignis" > /etc/hostname
-
-RUN mkdir -p /etc/xdg/autostart && \
-    printf '[Desktop Entry]\nType=Application\nName=Ignis Shell\nExec=/usr/local/bin/ignis-shell\nX-GNOME-Autostart-enabled=true\n' \
-      > /etc/xdg/autostart/ignis-shell.desktop
-
-CMD ["/bin/bash"]
-DOCKEREOF
-
           docker buildx build \
             --platform linux/arm64 \
             --load \
             -t ignis-rootfs:build \
-            -f /tmp/Dockerfile.ignis \
+            -f .github/Dockerfile.ignis \
             .
-
           CID=$(docker create --platform linux/arm64 ignis-rootfs:build)
           docker export "$CID" | sudo tar -x -C build/rootfs
           docker rm "$CID"
@@ -120,21 +63,17 @@ DOCKEREOF
           ROOTFS=build/rootfs
           mkdir -p "${ISO_DIR}/boot/grub"
 
-          # kernel + initrd
-          VMLINUZ=$(ls "${ROOTFS}/boot/vmlinuz-"* 2>/dev/null | tail -1)
-          INITRD=$(ls  "${ROOTFS}/boot/initrd.img-"* 2>/dev/null | tail -1)
-          [[ -f "${VMLINUZ}" ]] && cp "${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
-          [[ -f "${INITRD}"  ]] && cp "${INITRD}"  "${ISO_DIR}/boot/initrd.img"
+          VMLINUZ=$(ls "${ROOTFS}/boot/vmlinuz-"* 2>/dev/null | tail -1 || true)
+          INITRD=$(ls  "${ROOTFS}/boot/initrd.img-"* 2>/dev/null | tail -1 || true)
+          [ -f "${VMLINUZ}" ] && cp "${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
+          [ -f "${INITRD}"  ] && cp "${INITRD}"  "${ISO_DIR}/boot/initrd.img"
 
-          # squashfs
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/boot/filesystem.squashfs" \
             -comp xz -e boot -e proc -e sys -noappend
           echo "Squashfs: $(du -sh ${ISO_DIR}/boot/filesystem.squashfs | cut -f1)"
 
-          # grub config
           cp config/grub/grub.cfg "${ISO_DIR}/boot/grub/grub.cfg"
 
-          # ISO
           xorriso -as mkisofs -r -V "IgnisOS_${VER}" \
             -o "build/IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
           echo "ISO: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
@@ -164,7 +103,16 @@ DOCKEREOF
             ### Run on Apple M-series (UTM)
             1. Download [UTM](https://mac.getutm.app/)
             2. `+` → **Virtualize** → **Linux**
-            3. Select ISO → RAM 2048MB+ → 20GB disk → Save → Play
+            3. Select the ISO → RAM 2048MB+ → 20GB disk → Save → Play
+
+            ### Run in QEMU
+            ```bash
+            qemu-system-aarch64 -M virt -cpu cortex-a72 -m 2048 \
+              -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
+              -drive if=virtio,format=raw,file=IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso \
+              -device virtio-gpu-pci -display sdl \
+              -device usb-kbd -device usb-mouse -usb
+            ```
           files: |
             IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
             IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
