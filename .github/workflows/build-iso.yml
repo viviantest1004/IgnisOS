@@ -44,16 +44,16 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            squashfs-tools xorriso grub-efi-arm64-bin mtools wget
+            squashfs-tools xorriso grub-efi-arm64-bin mtools wget xz-utils
 
       - name: Download Ubuntu base rootfs
         run: |
           mkdir -p build/rootfs
           wget -q \
-            "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz" \
-            -O /tmp/ubuntu-base.tar.gz
-          sudo tar -xzf /tmp/ubuntu-base.tar.gz -C build/rootfs
-          rm /tmp/ubuntu-base.tar.gz
+            "https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-arm64-root.tar.xz" \
+            -O /tmp/ubuntu-base.tar.xz
+          sudo tar -xJf /tmp/ubuntu-base.tar.xz -C build/rootfs
+          rm /tmp/ubuntu-base.tar.xz
           echo "Base: $(sudo du -sh build/rootfs | cut -f1)"
           df -h
 
