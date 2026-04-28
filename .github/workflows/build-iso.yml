@@ -70,7 +70,8 @@ jobs:
         run: |
           sudo cp .github/chroot-setup.sh build/rootfs/tmp/setup.sh
           sudo chmod +x build/rootfs/tmp/setup.sh
-          # DNS 설정 (chroot 내 네트워크 접근에 필요)
+          # DNS 설정 (symlink 제거 후 실제 파일 복사)
+          sudo rm -f build/rootfs/etc/resolv.conf
           sudo cp /etc/resolv.conf build/rootfs/etc/resolv.conf
           sudo mount --bind /proc    build/rootfs/proc
           sudo mount --bind /sys     build/rootfs/sys
