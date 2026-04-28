@@ -60,6 +60,9 @@ jobs:
           CID=$(docker create ignis-rootfs:build)
           docker export "$CID" | sudo tar -x -C build/rootfs
           docker rm "$CID"
+          docker rmi ignis-rootfs:build || true
+          docker system prune -af || true
+          df -h
           echo "Rootfs: $(du -sh build/rootfs | cut -f1)"
 
       - name: Build ISO
@@ -77,7 +80,7 @@ jobs:
 
           # SquashFS rootfs under /casper/ (casper standard)
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/casper/filesystem.squashfs" \
-            -comp xz -e boot -e proc -e sys -noappend
+            -comp gzip -e boot -e proc -e sys -noappend
           sudo chmod 644 "${ISO_DIR}/casper/filesystem.squashfs"
           echo "Squashfs: $(du -sh ${ISO_DIR}/casper/filesystem.squashfs | cut -f1)"
 
