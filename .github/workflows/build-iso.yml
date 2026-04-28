@@ -84,6 +84,10 @@ jobs:
           sudo chmod 644 "${ISO_DIR}/casper/filesystem.squashfs"
           echo "Squashfs: $(du -sh ${ISO_DIR}/casper/filesystem.squashfs | cut -f1)"
 
+          # rootfs 더 이상 불필요 — 즉시 삭제해 디스크 확보
+          sudo rm -rf "${ROOTFS}"
+          df -h
+
           # GRUB config (update paths to /casper/)
           sed 's|/boot/vmlinuz|/casper/vmlinuz|g; s|/boot/initrd.img|/casper/initrd|g' \
             config/grub/grub.cfg > "${ISO_DIR}/boot/grub/grub.cfg"
@@ -117,16 +121,13 @@ jobs:
             -o "build/IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
           echo "ISO: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
 
-          cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-live-arm64.iso"
-          cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-install-arm64.iso"
+          mv "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-arm64.iso"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: IgnisOS-${{ steps.ver.outputs.version }}-arm64
-          path: |
-            IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
-            IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
+          path: IgnisOS-${{ steps.ver.outputs.version }}-arm64.iso
           retention-days: 14
 
       - name: Create GitHub Release
@@ -152,8 +153,6 @@ jobs:
               -device virtio-gpu-pci -display sdl \
               -device usb-kbd -device usb-mouse -usb
             ```
-          files: |
-            IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
-            IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
+          files: IgnisOS-${{ steps.ver.outputs.version }}-arm64.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
