@@ -9,12 +9,12 @@ on:
       version:
         description: 'Version'
         required: false
-        default: '1.0.0'
+        default: 'dev'
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - name: Checkout
@@ -26,44 +26,151 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           else
-            echo "version=${{ github.event.inputs.version || '1.0.0' }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version || 'dev' }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" \
-                      /usr/share/swift /usr/local/.ghcup
-          sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' \
-            azure-cli google-cloud-cli google-chrome-stable \
-            firefox powershell mono-devel 2>/dev/null || true
-          sudo apt-get autoremove -y
+          sudo rm -rf \
+            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" \
+            /usr/share/swift /usr/local/.ghcup \
+            /usr/lib/jvm /usr/lib/mono /opt/hostedtoolcache
+          sudo docker system prune -af 2>/dev/null || true
           sudo apt-get clean
-          docker system prune -af || true
           df -h
 
-      - name: Install host tools
+      - name: Install build tools
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            squashfs-tools xorriso grub-efi-arm64-bin mtools
-          sudo systemctl start docker || true
+            debootstrap squashfs-tools xorriso \
+            grub-efi-arm64-bin mtools
 
-      - name: Build ARM64 rootfs (native, no QEMU)
+      - name: Build rootfs with debootstrap
         run: |
-          mkdir -p build/rootfs
-          docker build \
-            --load \
-            -t ignis-rootfs:build \
-            -f .github/Dockerfile.ignis \
-            .
-          CID=$(docker create ignis-rootfs:build)
-          docker export "$CID" | sudo tar -x -C build/rootfs
-          docker rm "$CID"
-          docker rmi ignis-rootfs:build || true
-          docker system prune -af || true
+          sudo debootstrap \
+            --arch=arm64 \
+            --variant=minbase \
+            --components=main,universe \
+            noble build/rootfs \
+            http://ports.ubuntu.com/ubuntu-ports
+          echo "Base rootfs: $(sudo du -sh build/rootfs | cut -f1)"
+
+      - name: Copy IgnisOS apps into rootfs
+        run: |
+          sudo mkdir -p build/rootfs/usr/share/ignis
+          for app in ignis-shell ignis-settings ignis-files ignis-calc \
+                     ignis-terminal ignis-notepad ignis-clock ignis-taskmanager \
+                     ignis-recovery ignis-oobe; do
+            [ -d "$app" ] && sudo cp -r "$app" build/rootfs/usr/share/ignis/
+          done
+
+      - name: Write chroot setup script
+        run: |
+          cat > /tmp/ignis-chroot-setup.sh << 'SCRIPT'
+          #!/bin/bash
+          set -e
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Sources
+          cat > /etc/apt/sources.list << 'SOURCES'
+          deb http://ports.ubuntu.com/ubuntu-ports noble main universe restricted
+          deb http://ports.ubuntu.com/ubuntu-ports noble-updates main universe restricted
+          SOURCES
+
+          apt-get update -qq
+
+          # Install packages
+          apt-get install -y --no-install-recommends \
+            linux-image-generic \
+            casper \
+            xorg xserver-xorg-core \
+            openbox \
+            lightdm lightdm-gtk-greeter \
+            python3 python3-gi python3-gi-cairo \
+            gir1.2-gtk-4.0 gir1.2-adw-1 \
+            gir1.2-vte-3.91 \
+            network-manager \
+            fonts-noto fonts-ubuntu \
+            sudo ca-certificates locales tzdata \
+            build-essential notify-send
+
+          # Locale
+          locale-gen en_US.UTF-8 ko_KR.UTF-8
+          update-locale LANG=en_US.UTF-8
+
+          # User
+          useradd -m -s /bin/bash -G sudo ignis 2>/dev/null || true
+          echo "ignis:ignis" | chpasswd
+          echo "root:ignis" | chpasswd
+
+          # Launcher scripts
+          for app in shell settings files calc terminal notepad clock taskmanager oobe; do
+            printf '#!/bin/bash\nexec python3 /usr/share/ignis/ignis-%s/%s.py "$@"\n' \
+              "$app" "$app" > /usr/local/bin/ignis-$app
+            chmod +x /usr/local/bin/ignis-$app
+          done
+
+          # Recovery
+          if [ -f /usr/share/ignis/ignis-recovery/recovery.sh ]; then
+            install -m755 /usr/share/ignis/ignis-recovery/recovery.sh \
+              /usr/local/bin/ignis-recovery
+          fi
+
+          # Build uptime-kernel if source present
+          if [ -f /usr/share/ignis/uptime_kernel.c ]; then
+            gcc -O2 -o /usr/local/bin/uptime-kernel \
+              /usr/share/ignis/uptime_kernel.c -lm || true
+          fi
+
+          # Autostart ignis-shell
+          mkdir -p /etc/xdg/autostart
+          cat > /etc/xdg/autostart/ignis-shell.desktop << 'DESK'
+          [Desktop Entry]
+          Type=Application
+          Name=Ignis Shell
+          Exec=/usr/local/bin/ignis-shell
+          X-GNOME-Autostart-enabled=true
+          DESK
+
+          # LightDM autologin
+          mkdir -p /etc/lightdm
+          cat > /etc/lightdm/lightdm.conf << 'LDM'
+          [Seat:*]
+          autologin-user=ignis
+          autologin-user-timeout=0
+          user-session=openbox
+          LDM
+
+          # OS branding
+          cat > /etc/os-release << 'OSREL'
+          NAME="IgnisOS"
+          VERSION="1.0"
+          ID=ignisOS
+          ID_LIKE=ubuntu
+          PRETTY_NAME="IgnisOS"
+          HOME_URL="https://viviantest1004.github.io/IgnisOS"
+          OSREL
+
+          apt-get clean
+          rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+          SCRIPT
+          chmod +x /tmp/ignis-chroot-setup.sh
+
+      - name: Run chroot setup
+        run: |
+          sudo cp /tmp/ignis-chroot-setup.sh build/rootfs/tmp/setup.sh
+          sudo mount --bind /proc   build/rootfs/proc
+          sudo mount --bind /sys    build/rootfs/sys
+          sudo mount --bind /dev    build/rootfs/dev
+          sudo mount --bind /dev/pts build/rootfs/dev/pts
+          sudo chroot build/rootfs /tmp/setup.sh || STATUS=$?
+          sudo umount build/rootfs/dev/pts build/rootfs/dev \
+                      build/rootfs/sys build/rootfs/proc 2>/dev/null || true
+          [ "${STATUS:-0}" -ne 0 ] && exit 1
+          echo "Rootfs ready: $(sudo du -sh build/rootfs | cut -f1)"
           df -h
-          echo "Rootfs: $(du -sh build/rootfs | cut -f1)"
 
       - name: Build ISO
         run: |
@@ -72,36 +179,38 @@ jobs:
           ROOTFS=build/rootfs
           mkdir -p "${ISO_DIR}/boot/grub" "${ISO_DIR}/EFI/BOOT" "${ISO_DIR}/casper"
 
-          # Kernel + initrd (casper expects them under /casper/)
+          # Kernel + initrd
           VMLINUZ=$(sudo ls "${ROOTFS}/boot/" | grep '^vmlinuz-' | tail -1 || true)
-          INITRD=$(sudo ls "${ROOTFS}/boot/"  | grep '^initrd.img-' | tail -1 || true)
-          [ -n "${VMLINUZ}" ] && sudo cp "${ROOTFS}/boot/${VMLINUZ}" "${ISO_DIR}/casper/vmlinuz" && sudo chmod 644 "${ISO_DIR}/casper/vmlinuz"
-          [ -n "${INITRD}"  ] && sudo cp "${ROOTFS}/boot/${INITRD}"  "${ISO_DIR}/casper/initrd" && sudo chmod 644 "${ISO_DIR}/casper/initrd"
+          INITRD=$(sudo ls  "${ROOTFS}/boot/" | grep '^initrd.img-' | tail -1 || true)
+          if [ -z "${VMLINUZ}" ]; then echo "ERROR: no kernel found"; exit 1; fi
+          sudo cp "${ROOTFS}/boot/${VMLINUZ}" "${ISO_DIR}/casper/vmlinuz"
+          sudo cp "${ROOTFS}/boot/${INITRD}"  "${ISO_DIR}/casper/initrd"
+          sudo chmod 644 "${ISO_DIR}/casper/vmlinuz" "${ISO_DIR}/casper/initrd"
 
-          # SquashFS rootfs under /casper/ (casper standard)
+          # squashfs
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/casper/filesystem.squashfs" \
             -comp gzip -e boot -e proc -e sys -noappend
           sudo chmod 644 "${ISO_DIR}/casper/filesystem.squashfs"
           echo "Squashfs: $(du -sh ${ISO_DIR}/casper/filesystem.squashfs | cut -f1)"
 
-          # rootfs 더 이상 불필요 — 즉시 삭제해 디스크 확보
+          # Free rootfs immediately
           sudo rm -rf "${ROOTFS}"
           df -h
 
-          # GRUB config (update paths to /casper/)
+          # GRUB config
           sed 's|/boot/vmlinuz|/casper/vmlinuz|g; s|/boot/initrd.img|/casper/initrd|g' \
             config/grub/grub.cfg > "${ISO_DIR}/boot/grub/grub.cfg"
 
-          # UEFI EFI binary (BOOTAA64.EFI) — fixes UEFI Shell drop
+          # UEFI BOOTAA64.EFI
           grub-mkstandalone \
             --format=arm64-efi \
             --output="${ISO_DIR}/EFI/BOOT/BOOTAA64.EFI" \
-            --modules="part_gpt part_msdos fat iso9660 linux normal boot configfile \
+            --modules="part_gpt fat iso9660 linux normal boot configfile \
               loopback chain efifwsetup efi_gop ls search search_label \
-              search_fs_uuid search_fs_file gfxterm test all_video loadenv ext2" \
+              search_fs_uuid search_fs_file gfxterm all_video loadenv ext2" \
             "boot/grub/grub.cfg=${ISO_DIR}/boot/grub/grub.cfg"
 
-          # EFI partition image (FAT12, 4 MB) embedded in ISO
+          # EFI partition image
           EFI_IMG="${ISO_DIR}/boot/grub/efi.img"
           dd if=/dev/zero of="${EFI_IMG}" bs=1M count=4
           mkfs.vfat "${EFI_IMG}"
@@ -111,19 +220,17 @@ jobs:
 
           sudo chmod -R a+rX "${ISO_DIR}"
 
-          # Build UEFI-bootable ISO (El Torito EFI entry)
+          # Build ISO
           sudo xorriso -as mkisofs \
             -r -V "IgnisOS_${VER}" \
             -J -joliet-long \
             -no-emul-boot \
             -e boot/grub/efi.img \
             -isohybrid-gpt-basdat \
-            -o "build/IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
-          echo "ISO: $(du -sh build/IgnisOS-${VER}-arm64.iso | cut -f1)"
+            -o "IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
+          echo "ISO: $(du -sh IgnisOS-${VER}-arm64.iso | cut -f1)"
 
-          mv "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-arm64.iso"
-
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: IgnisOS-${{ steps.ver.outputs.version }}-arm64
@@ -136,20 +243,17 @@ jobs:
         with:
           name: IgnisOS ${{ steps.ver.outputs.version }}
           body: |
-            ## 🔥 IgnisOS ${{ steps.ver.outputs.version }} — ARM64 Linux
+            ## IgnisOS ${{ steps.ver.outputs.version }} — ARM64 Live ISO
 
-            > **ARM64 only** — Raspberry Pi 4/5, Apple M1/M2/M3/M4 (UTM), QEMU, AWS Graviton
+            ### UTM (Apple M-series)
+            1. UTM 설치 → `+` → **Virtualize** → **Linux**
+            2. ISO 선택 → RAM 2048MB+ → 20GB 디스크 → 저장 → 실행
 
-            ### Run on Apple M-series (UTM)
-            1. Download [UTM](https://mac.getutm.app/)
-            2. `+` → **Virtualize** → **Linux**
-            3. Select the ISO → RAM 2048MB+ → 20GB disk → Save → Play
-
-            ### Run in QEMU
+            ### QEMU
             ```bash
             qemu-system-aarch64 -M virt -cpu cortex-a72 -m 2048 \
               -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-              -drive if=virtio,format=raw,file=IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso \
+              -drive if=virtio,format=raw,file=IgnisOS-${{ steps.ver.outputs.version }}-arm64.iso \
               -device virtio-gpu-pci -display sdl \
               -device usb-kbd -device usb-mouse -usb
             ```
