@@ -63,10 +63,10 @@ jobs:
           ROOTFS=build/rootfs
           mkdir -p "${ISO_DIR}/boot/grub"
 
-          VMLINUZ=$(ls "${ROOTFS}/boot/vmlinuz-"* 2>/dev/null | tail -1 || true)
-          INITRD=$(ls  "${ROOTFS}/boot/initrd.img-"* 2>/dev/null | tail -1 || true)
-          [ -f "${VMLINUZ}" ] && cp "${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
-          [ -f "${INITRD}"  ] && cp "${INITRD}"  "${ISO_DIR}/boot/initrd.img"
+          VMLINUZ=$(sudo ls "${ROOTFS}/boot/" | grep '^vmlinuz-' | tail -1 || true)
+          INITRD=$(sudo ls "${ROOTFS}/boot/"  | grep '^initrd.img-' | tail -1 || true)
+          [ -n "${VMLINUZ}" ] && sudo cp "${ROOTFS}/boot/${VMLINUZ}" "${ISO_DIR}/boot/vmlinuz"
+          [ -n "${INITRD}"  ] && sudo cp "${ROOTFS}/boot/${INITRD}"  "${ISO_DIR}/boot/initrd.img"
 
           sudo mksquashfs "${ROOTFS}" "${ISO_DIR}/boot/filesystem.squashfs" \
             -comp xz -e boot -e proc -e sys -noappend
