@@ -1,0 +1,110 @@
+name: Build IgnisOS ARM64 ISO
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.0.0)'
+        required: false
+        default: '1.0.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            debootstrap qemu-user-static binfmt-support \
+            grub-efi-arm64 grub-efi-arm64-bin \
+            dosfstools mtools \
+            squashfs-tools xorriso \
+            gcc-aarch64-linux-gnu \
+            gcc make
+
+      - name: Enable ARM64 binfmt
+        run: |
+          sudo update-binfmts --enable qemu-aarch64 || true
+          ls /proc/sys/fs/binfmt_misc/ || true
+
+      - name: Set version
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version || '1.0.0' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build ISO
+        run: sudo ./build.sh
+        env:
+          IGNIS_VERSION: ${{ steps.ver.outputs.version }}
+
+      - name: Rename outputs
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          ls build/
+          # copy as both live and install (same image, different names for releases)
+          cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-live-arm64.iso"
+          cp "build/IgnisOS-${VER}-arm64.iso" "IgnisOS-${VER}-install-arm64.iso"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: IgnisOS ${{ steps.ver.outputs.version }}
+          body: |
+            ## 🔥 IgnisOS ${{ steps.ver.outputs.version }} — ARM64 Linux
+
+            > **ARM64 only** — Raspberry Pi 4/5, Apple M1/M2/M3/M4 (UTM), QEMU, AWS Graviton
+
+            ### Downloads
+            | File | Description |
+            |------|-------------|
+            | `IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso` | Live ISO — boot without installing |
+            | `IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso` | Install ISO — full installer |
+
+            ### Quick Start (Apple M-series via UTM)
+            1. Download [UTM](https://mac.getutm.app/)
+            2. Click `+` → **Virtualize** → **Linux**
+            3. Select the ISO → RAM 2048MB+ → 20GB disk
+            4. Save and run
+
+            ### Quick Start (QEMU)
+            ```bash
+            qemu-system-aarch64 -M virt -cpu cortex-a72 -m 2048 \
+              -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
+              -drive if=virtio,format=raw,file=IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso \
+              -device virtio-gpu-pci -display sdl \
+              -device usb-kbd -device usb-mouse -usb
+            ```
+
+            ---
+            🤖 Built automatically by GitHub Actions · MIT License
+          files: |
+            IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
+            IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact (manual trigger)
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: IgnisOS-${{ steps.ver.outputs.version }}-arm64
+          path: |
+            IgnisOS-${{ steps.ver.outputs.version }}-live-arm64.iso
+            IgnisOS-${{ steps.ver.outputs.version }}-install-arm64.iso
+          retention-days: 7
