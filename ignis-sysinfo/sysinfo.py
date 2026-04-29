@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""IgnisOS 시스템 정보"""
+"""IgnisOS 시스템 정보 / System Info"""
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import subprocess, os, platform
+import subprocess, os, platform, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CSS = b"""
 .si-win { background: #0d0d1f; }
@@ -25,15 +30,15 @@ CSS = b"""
 .si-os-ver { font-size: 14px; color: #94a3b8; }
 """
 
-def _read(path, default="알 수 없음"):
+def _read(path, default=None):
     try:
         with open(path) as f: return f.read().strip()
-    except Exception: return default
+    except Exception: return default or t('unknown')
 
-def _cmd(args, default="알 수 없음"):
+def _cmd(args, default=None):
     try:
         return subprocess.check_output(args, stderr=subprocess.DEVNULL).decode().strip()
-    except Exception: return default
+    except Exception: return default or t('unknown')
 
 class SysInfo(Adw.Application):
     def __init__(self):
@@ -48,7 +53,7 @@ class SysInfo(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("시스템 정보")
+        self.win.set_title(t('app_sysinfo'))
         self.win.set_default_size(560, 640)
         self.win.add_css_class("si-win")
 
@@ -83,7 +88,7 @@ class SysInfo(Adw.Application):
         vbox.append(hero)
 
         # Copy 버튼
-        copy_btn = Gtk.Button(label="📋 정보 복사")
+        copy_btn = Gtk.Button(label=t('si_copy'))
         copy_btn.set_halign(Gtk.Align.CENTER)
         copy_btn.set_margin_bottom(16)
         copy_btn.connect("clicked", self._copy_info)
@@ -153,33 +158,34 @@ class SysInfo(Adw.Application):
         # 네트워크
         ip = _cmd(["hostname", "-I"]).split()[0] if _cmd(["hostname","-I"]) else "알 수 없음"
 
+        cores_label = f"{cpu_cores} {'코어' if __import__('i18n').LANG=='ko' else 'cores'}" if cpu_cores else t('unknown')
         return {
-            "운영체제": [
-                ("이름", "IgnisOS"),
-                ("커널", f"{uname.system} {uname.release}"),
-                ("아키텍처", cpu_arch),
-                ("호스트명", hostname),
-                ("업타임", uptime),
+            t('si_os'): [
+                (t('si_name'),     "IgnisOS"),
+                (t('si_kernel'),   f"{uname.system} {uname.release}"),
+                (t('si_arch'),     cpu_arch),
+                (t('si_hostname'), hostname),
+                (t('si_uptime'),   uptime),
             ],
-            "하드웨어": [
-                ("CPU", cpu_name),
-                ("코어 수", f"{cpu_cores} 코어"),
-                ("GPU", gpu_name[:60] if gpu_name else "알 수 없음"),
+            t('si_hardware'): [
+                (t('si_cpu'),   cpu_name),
+                (t('si_cores'), cores_label),
+                (t('si_gpu'),   gpu_name[:60] if gpu_name else t('unknown')),
             ],
-            "메모리": [
-                ("전체", f"{total_mb:,} MB"),
-                ("사용 중", f"{used_mb:,} MB"),
-                ("사용 가능", f"{avail_mb:,} MB"),
+            t('si_memory'): [
+                (t('si_total'), f"{total_mb:,} MB"),
+                (t('si_used'),  f"{used_mb:,} MB"),
+                (t('si_avail'), f"{avail_mb:,} MB"),
             ],
-            "저장소": [
-                ("디바이스", disk_info[0] if len(disk_info) > 0 else "?"),
-                ("전체 용량", disk_info[1] if len(disk_info) > 1 else "?"),
-                ("사용 중", disk_info[2] if len(disk_info) > 2 else "?"),
-                ("사용 가능", disk_info[3] if len(disk_info) > 3 else "?"),
-                ("사용률", disk_info[4] if len(disk_info) > 4 else "?"),
+            t('si_storage'): [
+                (t('si_device'), disk_info[0] if len(disk_info) > 0 else "?"),
+                (t('si_total'),  disk_info[1] if len(disk_info) > 1 else "?"),
+                (t('si_used'),   disk_info[2] if len(disk_info) > 2 else "?"),
+                (t('si_avail'),  disk_info[3] if len(disk_info) > 3 else "?"),
+                (t('si_usage'),  disk_info[4] if len(disk_info) > 4 else "?"),
             ],
-            "네트워크": [
-                ("IP 주소", ip),
+            t('si_network'): [
+                (t('si_ip'), ip),
             ],
         }
 

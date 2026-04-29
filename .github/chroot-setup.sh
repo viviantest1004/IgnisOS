@@ -32,7 +32,7 @@ apt-get install -y --no-install-recommends \
     fonts-noto \
     sudo ca-certificates locales tzdata \
     libnotify-bin build-essential \
-    scrot ffmpeg \
+    scrot ffmpeg fonts-noto-cjk \
     zip unzip \
     pciutils \
     librsvg2-common \
@@ -54,6 +54,9 @@ echo "root:ignis"   | chpasswd
 echo "ignis ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Launcher scripts
+# i18n 모듈 심볼릭 링크 (모든 앱에서 접근 가능하도록)
+ln -sf /usr/share/ignis/ignis-i18n/i18n.py /usr/local/lib/python3/dist-packages/i18n.py 2>/dev/null || true
+
 for app in shell settings files calc terminal notepad clock taskmanager oobe \
            imageviewer music video calendar screenshot archive sysinfo; do
     cat > /usr/local/bin/ignis-${app} << LAUNCHER

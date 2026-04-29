@@ -67,7 +67,8 @@ jobs:
                      ignis-terminal ignis-notepad ignis-clock ignis-taskmanager \
                      ignis-recovery ignis-oobe \
                      ignis-imageviewer ignis-music ignis-video \
-                     ignis-calendar ignis-screenshot ignis-archive ignis-sysinfo; do
+                     ignis-calendar ignis-screenshot ignis-archive ignis-sysinfo \
+                     ignis-i18n; do
             [ -d "$app" ] && sudo cp -r "$app" build/rootfs/usr/share/ignis/
           done
 

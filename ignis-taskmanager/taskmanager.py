@@ -4,7 +4,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import subprocess, threading, os
+import subprocess, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k, threading, os
 
 CSS = b"""
 .tm-win { background: #0d0d1f; }
