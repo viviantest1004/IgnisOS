@@ -4,7 +4,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import os, subprocess, threading
+import os, subprocess, threading, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CSS = b"""
 .arc-win { background: #0d0d1f; }
@@ -40,7 +45,7 @@ class ArchiveManager(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("아카이브 관리자")
+        self.win.set_title(t('app_archive'))
         self.win.set_default_size(640, 500)
         self.win.add_css_class("arc-win")
 
@@ -50,12 +55,12 @@ class ArchiveManager(Adw.Application):
         # 툴바
         toolbar = Gtk.Box(spacing=6)
         toolbar.add_css_class("arc-toolbar")
-        for label, cb in [
-            ("📂 아카이브 열기", self._open_archive),
-            ("📦 압축하기", self._compress),
-            ("📤 압축 해제", self._extract),
+        for key, cb in [
+            ('arc_open',     self._open_archive),
+            ('arc_compress', self._compress),
+            ('arc_extract',  self._extract),
         ]:
-            b = Gtk.Button(label=label)
+            b = Gtk.Button(label=t(key))
             b.connect("clicked", cb)
             toolbar.append(b)
         vbox.append(toolbar)
@@ -69,7 +74,7 @@ class ArchiveManager(Adw.Application):
         vbox.append(scroll)
 
         # 상태바
-        self.status = Gtk.Label(label="아카이브를 열어보세요", xalign=0)
+        self.status = Gtk.Label(label=t('arc_status'), xalign=0)
         self.status.add_css_class("arc-status")
         vbox.append(self.status)
 
@@ -79,7 +84,7 @@ class ArchiveManager(Adw.Application):
     def _open_archive(self, *_):
         dialog = Gtk.FileDialog()
         f = Gtk.FileFilter()
-        f.set_name("아카이브")
+        f.set_name(t('arc_filter'))
         for pat in ["*.zip","*.tar","*.tar.gz","*.tgz","*.tar.bz2","*.tar.xz","*.7z","*.rar"]:
             f.add_pattern(pat)
         filters = Gio.ListStore.new(Gtk.FileFilter)
@@ -123,10 +128,10 @@ class ArchiveManager(Adw.Application):
                 self.listbox.append(row)
 
             name = os.path.basename(path)
-            self.status.set_text(f"{name}  |  {len(entries)}개 파일")
-            self.win.set_title(f"아카이브 — {name}")
+            self.status.set_text(f"{name}  |  {len(entries)}")
+            self.win.set_title(f"{t('app_archive')} — {name}")
         except Exception as e:
-            self.status.set_text(f"오류: {e}")
+            self.status.set_text(f"{t('error')}: {e}")
 
     def _extract(self, *_):
         if not self._archive_path:
@@ -138,16 +143,16 @@ class ArchiveManager(Adw.Application):
         try:
             dest = dialog.select_folder_finish(result).get_path()
             path = self._archive_path
-            self.status.set_text("압축 해제 중...")
+            self.status.set_text(t('arc_extracting'))
             def do_extract():
                 try:
                     if path.endswith('.zip'):
                         subprocess.run(["unzip", "-o", path, "-d", dest], check=True)
                     else:
                         subprocess.run(["tar", "-xf", path, "-C", dest], check=True)
-                    GLib.idle_add(self.status.set_text, f"압축 해제 완료: {dest}")
+                    GLib.idle_add(self.status.set_text, f"{t('arc_extract')}: {dest}")
                 except Exception as e:
-                    GLib.idle_add(self.status.set_text, f"오류: {e}")
+                    GLib.idle_add(self.status.set_text, f"{t('error')}: {e}")
             threading.Thread(target=do_extract, daemon=True).start()
         except Exception:
             pass
@@ -171,13 +176,13 @@ class ArchiveManager(Adw.Application):
             out_path = dialog.save_finish(result).get_path()
             if not out_path.endswith('.zip'):
                 out_path += '.zip'
-            self.status.set_text("압축 중...")
+            self.status.set_text(t('arc_compressing'))
             def do_compress():
                 try:
                     subprocess.run(["zip", "-r", out_path] + files, check=True)
-                    GLib.idle_add(self.status.set_text, f"압축 완료: {out_path}")
+                    GLib.idle_add(self.status.set_text, f"{t('arc_compress')}: {out_path}")
                 except Exception as e:
-                    GLib.idle_add(self.status.set_text, f"오류: {e}")
+                    GLib.idle_add(self.status.set_text, f"{t('error')}: {e}")
             threading.Thread(target=do_compress, daemon=True).start()
         except Exception:
             pass

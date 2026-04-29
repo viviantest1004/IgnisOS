@@ -4,12 +4,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import subprocess, sys
+import subprocess, sys, os, threading
 sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
 try:
     from i18n import t
 except ImportError:
-    def t(k): return k, threading, os
+    def t(k): return k
 
 CSS = b"""
 .tm-win { background: #0d0d1f; }
@@ -63,7 +63,7 @@ class TaskManager(Adw.Application):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("작업 관리자")
+        self.win.set_title(t('app_taskmanager'))
         self.win.set_default_size(800, 620)
         self.win.add_css_class("tm-win")
 
@@ -82,8 +82,8 @@ class TaskManager(Adw.Application):
         self.mem_bar = Gtk.ProgressBar()
 
         for title, val_lbl, bar in [
-            ("CPU 사용률", self.cpu_lbl, self.cpu_bar),
-            ("메모리 사용률", self.mem_lbl, self.mem_bar),
+            (t('tm_cpu_usage'), self.cpu_lbl, self.cpu_bar),
+            (t('tm_mem_usage'), self.mem_lbl, self.mem_bar),
         ]:
             card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
                            hexpand=True)
@@ -101,7 +101,7 @@ class TaskManager(Adw.Application):
         uptime_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
                                hexpand=True)
         uptime_card.add_css_class("tm-stat-card")
-        ut = Gtk.Label(label="업타임", xalign=0)
+        ut = Gtk.Label(label=t('tm_uptime'), xalign=0)
         ut.add_css_class("tm-stat-title")
         uptime_card.append(ut)
         uptime_card.append(self.uptime_lbl)
@@ -112,11 +112,11 @@ class TaskManager(Adw.Application):
         # 툴바
         toolbar = Gtk.Box(spacing=8, margin_start=16, margin_end=16,
                           margin_bottom=8)
-        refresh_btn = Gtk.Button(label="🔄 새로고침")
+        refresh_btn = Gtk.Button(label=t('tm_refresh'))
         refresh_btn.connect("clicked", lambda *_: self._refresh())
         toolbar.append(refresh_btn)
         self.search = Gtk.SearchEntry()
-        self.search.set_placeholder_text("프로세스 검색...")
+        self.search.set_placeholder_text(t('tm_search'))
         self.search.set_hexpand(True)
         self.search.connect("search-changed", lambda *_: self._refresh())
         toolbar.append(self.search)
@@ -133,8 +133,8 @@ class TaskManager(Adw.Application):
 
         # 헤더
         col_header = Gtk.Box()
-        for text, expand in [("PID", False),("프로세스", True),
-                               ("CPU%", False),("메모리", False),("", False)]:
+        for text, expand in [(t('tm_pid'), False),(t('tm_process'), True),
+                               (t('tm_cpu'), False),(t('tm_mem'), False),("", False)]:
             lbl = Gtk.Label(label=text, xalign=0, hexpand=expand,
                            width_chars=8 if not expand else -1)
             lbl.add_css_class("tm-col-header")
@@ -188,7 +188,7 @@ class TaskManager(Adw.Application):
                 secs = float(f.read().split()[0])
             h = int(secs // 3600)
             m = int((secs % 3600) // 60)
-            return f"{h}시간 {m}분"
+            return f"{h}h {m}m"
         except Exception:
             return "N/A"
 
@@ -232,7 +232,7 @@ class TaskManager(Adw.Application):
                                ellipsize=3, width_chars=8 if not expand else -1)
                 lbl.add_css_class("tm-row")
                 box.append(lbl)
-            kill = Gtk.Button(label="종료")
+            kill = Gtk.Button(label=t('tm_kill'))
             kill.add_css_class("kill-btn")
             kill.connect("clicked", lambda *_, p=pid: self._kill(p))
             box.append(kill)

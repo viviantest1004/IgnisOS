@@ -5,6 +5,11 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
 import os, sys, subprocess, threading
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CSS = b"""
 .music-win { background: #0d0d1f; }
@@ -49,7 +54,7 @@ class MusicPlayer(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("음악 플레이어")
+        self.win.set_title(t('app_music'))
         self.win.set_default_size(480, 640)
         self.win.add_css_class("music-win")
 
@@ -65,11 +70,11 @@ class MusicPlayer(Adw.Application):
         self.album_art.set_markup('<span font="64">🎵</span>')
         header.append(self.album_art)
 
-        self.title_lbl = Gtk.Label(label="트랙 없음")
+        self.title_lbl = Gtk.Label(label=t('music_no_track'))
         self.title_lbl.add_css_class("track-title")
         header.append(self.title_lbl)
 
-        self.artist_lbl = Gtk.Label(label="파일을 추가하세요")
+        self.artist_lbl = Gtk.Label(label=t('music_add_hint'))
         self.artist_lbl.add_css_class("track-artist")
         header.append(self.artist_lbl)
 
@@ -85,15 +90,15 @@ class MusicPlayer(Adw.Application):
         # 컨트롤
         ctrl = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER,
                        margin_top=16, margin_bottom=16)
-        self.prev_btn = Gtk.Button(label="⏮")
+        self.prev_btn = Gtk.Button(label=t('music_prev'))
         self.prev_btn.add_css_class("ctrl-btn")
         self.prev_btn.connect("clicked", self._prev)
 
-        self.play_btn = Gtk.Button(label="▶ 재생")
+        self.play_btn = Gtk.Button(label=t('music_play'))
         self.play_btn.add_css_class("play-btn")
         self.play_btn.connect("clicked", self._toggle)
 
-        self.next_btn = Gtk.Button(label="⏭")
+        self.next_btn = Gtk.Button(label=t('music_next'))
         self.next_btn.add_css_class("ctrl-btn")
         self.next_btn.connect("clicked", self._next)
 
@@ -115,10 +120,10 @@ class MusicPlayer(Adw.Application):
 
         # 플레이리스트 툴바
         pl_bar = Gtk.Box(spacing=8, margin_start=12, margin_end=12, margin_bottom=6)
-        add_btn = Gtk.Button(label="➕ 파일 추가")
+        add_btn = Gtk.Button(label=t('music_add'))
         add_btn.add_css_class("ctrl-btn")
         add_btn.connect("clicked", self._add_files)
-        clear_btn = Gtk.Button(label="🗑 전체 삭제")
+        clear_btn = Gtk.Button(label=t('music_clear'))
         clear_btn.add_css_class("ctrl-btn")
         clear_btn.connect("clicked", self._clear)
         pl_bar.append(add_btn)
@@ -142,7 +147,7 @@ class MusicPlayer(Adw.Application):
     def _add_files(self, *_):
         dialog = Gtk.FileDialog()
         f = Gtk.FileFilter()
-        f.set_name("오디오")
+        f.set_name(t('music_filter'))
         for pat in ["*.mp3","*.flac","*.wav","*.ogg","*.m4a","*.aac","*.opus"]:
             f.add_pattern(pat)
         filters = Gio.ListStore.new(Gtk.FileFilter)
@@ -183,7 +188,7 @@ class MusicPlayer(Adw.Application):
         else:
             self.title_lbl.set_text(base)
             self.artist_lbl.set_text("")
-        self.win.set_title(f"음악 — {name}")
+        self.win.set_title(f"{t('app_music')} — {name}")
 
     def _play(self):
         self._stop_proc()
@@ -197,18 +202,17 @@ class MusicPlayer(Adw.Application):
                  str(int(self.vol.get_value())), path],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self._playing = True
-            self.play_btn.set_label("⏸ 일시정지")
+            self.play_btn.set_label(t('music_pause'))
             threading.Thread(target=self._watch_proc, daemon=True).start()
         except FileNotFoundError:
-            # ffplay 없으면 aplay 시도
             try:
                 self._proc = subprocess.Popen(
                     ["aplay", path],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 self._playing = True
-                self.play_btn.set_label("⏸ 일시정지")
+                self.play_btn.set_label(t('music_pause'))
             except Exception:
-                self.artist_lbl.set_text("ffplay 또는 aplay가 필요합니다")
+                self.artist_lbl.set_text("ffplay / aplay required")
 
     def _watch_proc(self):
         if self._proc:
@@ -230,7 +234,7 @@ class MusicPlayer(Adw.Application):
             self._proc.terminate()
             self._proc = None
         self._playing = False
-        self.play_btn.set_label("▶ 재생")
+        self.play_btn.set_label(t('music_play'))
 
     def _prev(self, *_):
         if self._playlist:
@@ -248,8 +252,8 @@ class MusicPlayer(Adw.Application):
         self._index = 0
         while row := self.listbox.get_first_child():
             self.listbox.remove(row)
-        self.title_lbl.set_text("트랙 없음")
-        self.artist_lbl.set_text("파일을 추가하세요")
+        self.title_lbl.set_text(t('music_no_track'))
+        self.artist_lbl.set_text(t('music_add_hint'))
 
 
 def main():

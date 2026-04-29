@@ -7,9 +7,10 @@ from gi.repository import Gtk, Adw, GLib, Gdk, Gio
 import subprocess, os, platform, sys
 sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
 try:
-    from i18n import t
+    from i18n import t, LANG
 except ImportError:
     def t(k): return k
+    LANG = 'en'
 
 CSS = b"""
 .si-win { background: #0d0d1f; }
@@ -120,12 +121,12 @@ class SysInfo(Adw.Application):
         uptime_raw = _read("/proc/uptime", "0").split()[0]
         try:
             secs = float(uptime_raw)
-            uptime = f"{int(secs//3600)}시간 {int((secs%3600)//60)}분"
+            uptime = f"{int(secs//3600)}h {int((secs%3600)//60)}m"
         except Exception:
             uptime = uptime_raw
 
         # CPU
-        cpu_name = "알 수 없음"
+        cpu_name = t('unknown')
         try:
             for line in _read("/proc/cpuinfo","").splitlines():
                 if "model name" in line or "Hardware" in line:
@@ -153,12 +154,12 @@ class SysInfo(Adw.Application):
         # GPU
         gpu = _cmd(["lspci"], "").split("\n")
         gpu_name = next((l.split(":", 2)[-1].strip() for l in gpu
-                        if "VGA" in l or "3D" in l or "Display" in l), "알 수 없음")
+                        if "VGA" in l or "3D" in l or "Display" in l), t('unknown'))
 
         # 네트워크
         ip = _cmd(["hostname", "-I"]).split()[0] if _cmd(["hostname","-I"]) else "알 수 없음"
 
-        cores_label = f"{cpu_cores} {'코어' if __import__('i18n').LANG=='ko' else 'cores'}" if cpu_cores else t('unknown')
+        cores_label = f"{cpu_cores} {t('si_cores_unit')}" if cpu_cores else t('unknown')
         return {
             t('si_os'): [
                 (t('si_name'),     "IgnisOS"),

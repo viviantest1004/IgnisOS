@@ -5,6 +5,11 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
 import os, sys, subprocess
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CSS = b"""
 .video-win { background: #000; }
@@ -36,7 +41,7 @@ class VideoPlayer(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("동영상 플레이어")
+        self.win.set_title(t('app_video'))
         self.win.set_default_size(800, 520)
         self.win.add_css_class("video-win")
 
@@ -44,10 +49,10 @@ class VideoPlayer(Adw.Application):
         self.win.set_content(vbox)
 
         # 영상 영역 (플레이스홀더)
-        self.video_area = Gtk.Label(label="🎬\n동영상 파일을 열어보세요")
+        self.video_area = Gtk.Label()
         self.video_area.set_markup(
             '<span font="48" foreground="#1e293b">🎬</span>\n'
-            '<span foreground="#334155" font="14">동영상 파일을 열어보세요</span>')
+            f'<span foreground="#334155" font="14">{t("video_hint")}</span>')
         self.video_area.set_justify(Gtk.Justification.CENTER)
         self.video_area.set_vexpand(True)
         vbox.append(self.video_area)
@@ -60,12 +65,12 @@ class VideoPlayer(Adw.Application):
         # 컨트롤
         ctrl = Gtk.Box(spacing=8)
         ctrl.add_css_class("video-ctrl")
-        for label, cb in [
-            ("📂 열기", self._open),
-            ("▶ 재생", self._play),
-            ("⏸ 정지", self._stop),
+        for key, cb in [
+            ('video_open', self._open),
+            ('video_play', self._play),
+            ('video_stop', self._stop),
         ]:
-            b = Gtk.Button(label=label)
+            b = Gtk.Button(label=t(key))
             b.connect("clicked", cb)
             ctrl.append(b)
         vbox.append(ctrl)
@@ -78,7 +83,7 @@ class VideoPlayer(Adw.Application):
     def _open(self, *_):
         dialog = Gtk.FileDialog()
         f = Gtk.FileFilter()
-        f.set_name("동영상")
+        f.set_name(t('video_filter'))
         for pat in ["*.mp4","*.mkv","*.avi","*.mov","*.webm","*.flv","*.wmv","*.m4v"]:
             f.add_pattern(pat)
         filters = Gio.ListStore.new(Gtk.FileFilter)
@@ -97,8 +102,7 @@ class VideoPlayer(Adw.Application):
         self._stop()
         name = os.path.basename(path)
         self.title_lbl.set_text(name)
-        self.win.set_title(f"동영상 — {name}")
-        # ffplay로 별도 창에서 재생
+        self.win.set_title(f"{t('app_video')} — {name}")
         try:
             self._proc = subprocess.Popen(
                 ["ffplay", "-window_title", name, path],
@@ -109,10 +113,10 @@ class VideoPlayer(Adw.Application):
                     ["mpv", path],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except FileNotFoundError:
-                self.title_lbl.set_text("ffplay 또는 mpv가 필요합니다")
+                self.title_lbl.set_text("ffplay / mpv required")
 
     def _play(self, *_):
-        pass  # 이미 재생 중
+        pass
 
     def _stop(self, *_):
         if self._proc:

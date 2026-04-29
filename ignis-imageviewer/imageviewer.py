@@ -5,6 +5,11 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
 import os, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CSS = b"""
 .iv-win { background: #0d0d1f; }
@@ -43,7 +48,7 @@ class ImageViewer(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("이미지 뷰어")
+        self.win.set_title(t('app_imageviewer'))
         self.win.set_default_size(900, 680)
         self.win.add_css_class("iv-win")
 
@@ -53,18 +58,31 @@ class ImageViewer(Adw.Application):
         # 툴바
         toolbar = Gtk.Box(spacing=4)
         toolbar.add_css_class("iv-toolbar")
-        for label, cb in [
-            ("📂 열기", self._open),
-            ("◀", self._prev),
-            ("▶", self._next),
-            ("🔍+", self._zoom_in),
-            ("🔍-", self._zoom_out),
-            ("↺", self._reset_zoom),
-            ("⟲ 회전", self._rotate),
+        for key, cb in [
+            ('iv_open',   self._open),
+            ('iv_prev',   self._prev),
+            ('iv_next',   self._next),
         ]:
-            b = Gtk.Button(label=label)
+            b = Gtk.Button(label=t(key))
             b.connect("clicked", cb)
             toolbar.append(b)
+
+        zoom_in = Gtk.Button(label="🔍+")
+        zoom_in.connect("clicked", self._zoom_in)
+        toolbar.append(zoom_in)
+
+        zoom_out = Gtk.Button(label="🔍-")
+        zoom_out.connect("clicked", self._zoom_out)
+        toolbar.append(zoom_out)
+
+        reset_zoom = Gtk.Button(label="↺")
+        reset_zoom.connect("clicked", self._reset_zoom)
+        toolbar.append(reset_zoom)
+
+        rotate_btn = Gtk.Button(label=t('iv_rotate'))
+        rotate_btn.connect("clicked", self._rotate)
+        toolbar.append(rotate_btn)
+
         toolbar.append(Gtk.Box(hexpand=True))
         vbox.append(toolbar)
 
@@ -76,7 +94,7 @@ class ImageViewer(Adw.Application):
         self.picture.set_can_shrink(True)
         self.picture.set_content_fit(Gtk.ContentFit.CONTAIN)
 
-        self.empty_lbl = Gtk.Label(label="🖼️\n이미지를 열어보세요")
+        self.empty_lbl = Gtk.Label(label=t('iv_empty'))
         self.empty_lbl.add_css_class("iv-empty")
         self.empty_lbl.set_justify(Gtk.Justification.CENTER)
 
@@ -87,7 +105,7 @@ class ImageViewer(Adw.Application):
         vbox.append(self.scroll)
 
         # 상태바
-        self.statusbar = Gtk.Label(label="이미지 없음", xalign=0)
+        self.statusbar = Gtk.Label(label=t('iv_no_image'), xalign=0)
         self.statusbar.add_css_class("iv-statusbar")
         vbox.append(self.statusbar)
 
@@ -102,7 +120,7 @@ class ImageViewer(Adw.Application):
     def _open(self, *_):
         dialog = Gtk.FileDialog()
         f = Gtk.FileFilter()
-        f.set_name("이미지")
+        f.set_name(t('iv_filter'))
         for pat in ["*.png","*.jpg","*.jpeg","*.gif","*.bmp","*.webp","*.svg","*.tiff"]:
             f.add_pattern(pat)
         filters = Gio.ListStore.new(Gtk.FileFilter)
@@ -142,11 +160,11 @@ class ImageViewer(Adw.Application):
             self._angle = 0
             self.stack.set_visible_child_name("image")
             name = os.path.basename(path)
-            self.win.set_title(f"이미지 뷰어 — {name}")
+            self.win.set_title(f"{t('app_imageviewer')} — {name}")
             self.statusbar.set_text(
                 f"{name}  |  {self._index+1} / {len(self._files)}")
         except Exception as e:
-            self.statusbar.set_text(f"오류: {e}")
+            self.statusbar.set_text(f"{t('error')}: {e}")
 
     def _prev(self, *_):
         if self._files:
@@ -169,18 +187,19 @@ class ImageViewer(Adw.Application):
     def _reset_zoom(self, *_):
         self._zoom = 1.0
         self.picture.set_content_fit(Gtk.ContentFit.CONTAIN)
-        self.statusbar.set_text(self.statusbar.get_text().split("  |  줌")[0])
+        base = self.statusbar.get_text().split(f"  |  {t('iv_zoom_lbl')}")[0]
+        self.statusbar.set_text(base)
 
     def _apply_zoom(self):
-        self.picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN if self._zoom < 1 else Gtk.ContentFit.FILL)
-        self.statusbar.set_text(
-            self.statusbar.get_text().split("  |  줌")[0] + f"  |  줌 {self._zoom*100:.0f}%")
+        self.picture.set_content_fit(
+            Gtk.ContentFit.SCALE_DOWN if self._zoom < 1 else Gtk.ContentFit.FILL)
+        base = self.statusbar.get_text().split(f"  |  {t('iv_zoom_lbl')}")[0]
+        self.statusbar.set_text(f"{base}  |  {t('iv_zoom_lbl')} {self._zoom*100:.0f}%")
 
     def _rotate(self, *_):
-        # Gtk.Picture는 직접 회전 미지원 — 상태만 표시
         self._angle = (self._angle + 90) % 360
-        self.statusbar.set_text(
-            self.statusbar.get_text().split("  |  회전")[0] + f"  |  회전 {self._angle}°")
+        base = self.statusbar.get_text().split(f"  |  {t('iv_rotate_lbl')}")[0]
+        self.statusbar.set_text(f"{base}  |  {t('iv_rotate_lbl')} {self._angle}°")
 
 
 def main():

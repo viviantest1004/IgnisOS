@@ -4,7 +4,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import datetime, json, os
+import datetime, json, os, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 DATA_FILE = os.path.expanduser("~/.ignis-calendar.json")
 
@@ -76,7 +81,7 @@ class CalendarApp(Adw.Application):
             Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.win = Adw.ApplicationWindow(application=app)
-        self.win.set_title("캘린더")
+        self.win.set_title(t('app_calendar'))
         self.win.set_default_size(700, 560)
         self.win.add_css_class("cal-win")
 
@@ -98,7 +103,7 @@ class CalendarApp(Adw.Application):
         next_btn.connect("clicked", lambda *_: self._navigate(1))
         self.month_lbl = Gtk.Label(hexpand=True)
         self.month_lbl.add_css_class("cal-month")
-        today_btn = Gtk.Button(label="오늘")
+        today_btn = Gtk.Button(label=t('cal_today'))
         today_btn.add_css_class("cal-nav")
         today_btn.connect("clicked", self._go_today)
         header.append(prev_btn)
@@ -129,7 +134,7 @@ class CalendarApp(Adw.Application):
         # 이벤트 추가
         add_box = Gtk.Box(spacing=8)
         self.event_entry = Gtk.Entry()
-        self.event_entry.set_placeholder_text("새 일정 입력...")
+        self.event_entry.set_placeholder_text(t('cal_new_event'))
         self.event_entry.set_hexpand(True)
         self.event_entry.connect("activate", self._add_event)
         add_btn = Gtk.Button(label="➕")
@@ -166,11 +171,12 @@ class CalendarApp(Adw.Application):
         self._render_events()
 
     def _render_calendar(self):
-        self.month_lbl.set_text(self._view.strftime("%Y년 %m월"))
+        self.month_lbl.set_text(self._view.strftime("%Y-%m"))
         while self.grid.get_first_child():
             self.grid.remove(self.grid.get_first_child())
 
-        for col, day in enumerate(["일","월","화","수","목","금","토"]):
+        day_names = t('cal_days_short').split(',')
+        for col, day in enumerate(day_names):
             lbl = Gtk.Label(label=day)
             lbl.add_css_class("day-header")
             self.grid.attach(lbl, col, 0, 1, 1)
@@ -225,7 +231,7 @@ class CalendarApp(Adw.Application):
     def _render_events(self):
         while self.event_list.get_first_child():
             self.event_list.remove(self.event_list.get_first_child())
-        self.sel_lbl.set_text(self._selected.strftime("%Y년 %m월 %d일"))
+        self.sel_lbl.set_text(self._selected.strftime("%Y-%m-%d"))
         key = str(self._selected)
         for i, ev in enumerate(self._events.get(key, [])):
             row = Gtk.Box(spacing=8)

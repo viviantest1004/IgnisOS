@@ -7,7 +7,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk, Gio
-import subprocess, os, threading, datetime, json, signal
+import subprocess, os, threading, datetime, json, signal, sys
+sys.path.insert(0, '/usr/share/ignis/ignis-i18n')
+try:
+    from i18n import t
+except ImportError:
+    def t(k): return k
 
 CONFIG_FILE = os.path.expanduser("~/.config/ignis/shell.json")
 
@@ -242,23 +247,23 @@ button:active { transform: scale(0.95); }
 
 APPS = [
     # 독(dock) 고정 앱
-    {"name": "Terminal",     "icon": "🖥️",  "cmd": "ignis-terminal",      "fixed": True},
-    {"name": "Files",        "icon": "📂",  "cmd": "ignis-files",         "fixed": True},
-    {"name": "Browser",      "icon": "🌐",  "cmd": "firefox",             "fixed": True},
-    {"name": "Settings",     "icon": "⚙️",  "cmd": "ignis-settings",      "fixed": True},
-    {"name": "메모장",        "icon": "📝",  "cmd": "ignis-notepad",       "fixed": True},
+    {"name": t('app_terminal'),    "icon": "🖥️",  "cmd": "ignis-terminal",    "fixed": True},
+    {"name": t('app_files'),       "icon": "📂",  "cmd": "ignis-files",       "fixed": True},
+    {"name": "Browser",            "icon": "🌐",  "cmd": "firefox",           "fixed": True},
+    {"name": t('app_settings'),    "icon": "⚙️",  "cmd": "ignis-settings",    "fixed": True},
+    {"name": t('app_notepad'),     "icon": "📝",  "cmd": "ignis-notepad",     "fixed": True},
     # 런처 앱
-    {"name": "계산기",        "icon": "🧮",  "cmd": "ignis-calc",          "fixed": False},
-    {"name": "시계",          "icon": "🕐",  "cmd": "ignis-clock",         "fixed": False},
-    {"name": "캘린더",        "icon": "📅",  "cmd": "ignis-calendar",      "fixed": False},
-    {"name": "작업 관리자",   "icon": "📊",  "cmd": "ignis-taskmanager",   "fixed": False},
-    {"name": "이미지 뷰어",   "icon": "🖼️",  "cmd": "ignis-imageviewer",   "fixed": False},
-    {"name": "음악 플레이어", "icon": "🎵",  "cmd": "ignis-music",          "fixed": False},
-    {"name": "동영상 플레이어","icon": "🎬",  "cmd": "ignis-video",          "fixed": False},
-    {"name": "스크린샷",      "icon": "📷",  "cmd": "ignis-screenshot",    "fixed": False},
-    {"name": "아카이브",      "icon": "📦",  "cmd": "ignis-archive",       "fixed": False},
-    {"name": "시스템 정보",   "icon": "💻",  "cmd": "ignis-sysinfo",       "fixed": False},
-    {"name": "복구 모드",     "icon": "🛠️",  "cmd": "ignis-recovery",      "fixed": False},
+    {"name": t('app_calc'),        "icon": "🧮",  "cmd": "ignis-calc",        "fixed": False},
+    {"name": t('app_clock'),       "icon": "🕐",  "cmd": "ignis-clock",       "fixed": False},
+    {"name": t('app_calendar'),    "icon": "📅",  "cmd": "ignis-calendar",    "fixed": False},
+    {"name": t('app_taskmanager'), "icon": "📊",  "cmd": "ignis-taskmanager", "fixed": False},
+    {"name": t('app_imageviewer'), "icon": "🖼️",  "cmd": "ignis-imageviewer", "fixed": False},
+    {"name": t('app_music'),       "icon": "🎵",  "cmd": "ignis-music",       "fixed": False},
+    {"name": t('app_video'),       "icon": "🎬",  "cmd": "ignis-video",       "fixed": False},
+    {"name": t('app_screenshot'),  "icon": "📷",  "cmd": "ignis-screenshot",  "fixed": False},
+    {"name": t('app_archive'),     "icon": "📦",  "cmd": "ignis-archive",     "fixed": False},
+    {"name": t('app_sysinfo'),     "icon": "💻",  "cmd": "ignis-sysinfo",     "fixed": False},
+    {"name": t('app_recovery'),    "icon": "🛠️",  "cmd": "ignis-recovery",    "fixed": False},
 ]
 
 
@@ -342,10 +347,10 @@ class AppSwitcher(Gtk.ApplicationWindow):
 
         hdr = Gtk.Box(spacing=12)
         title = Gtk.Label(xalign=0, hexpand=True)
-        title.set_markup('<span size="18000" weight="bold">열린 앱</span>')
+        title.set_markup(f'<span size="18000" weight="bold">{t("shell_open_apps")}</span>')
         hdr.append(title)
 
-        close_btn = Gtk.Button(label="✕ 닫기")
+        close_btn = Gtk.Button(label=t('shell_close_btn'))
         close_btn.add_css_class("dock-launcher")
         close_btn.connect("clicked", lambda *_: self.hide())
         hdr.append(close_btn)
@@ -369,7 +374,7 @@ class AppSwitcher(Gtk.ApplicationWindow):
         self.flow.set_column_spacing(10)
         scroll.set_child(self.flow)
 
-        self.empty_lbl = Gtk.Label(label="실행 중인 앱이 없습니다")
+        self.empty_lbl = Gtk.Label(label=t('shell_no_apps'))
         self.empty_lbl.set_visible(False)
         vbox.append(self.empty_lbl)
 
@@ -400,7 +405,7 @@ class AppSwitcher(Gtk.ApplicationWindow):
 
             btns = Gtk.Box(spacing=6, halign=Gtk.Align.CENTER)
 
-            focus_btn = Gtk.Button(label="▶ 전환")
+            focus_btn = Gtk.Button(label=t('shell_switch_btn'))
             focus_btn.add_css_class("dock-launcher")
             pid = a["pid"]
             focus_btn.connect("clicked", lambda *_, p=pid: (
@@ -410,7 +415,7 @@ class AppSwitcher(Gtk.ApplicationWindow):
             ))
             btns.append(focus_btn)
 
-            kill_btn = Gtk.Button(label="✕ 종료")
+            kill_btn = Gtk.Button(label=t('shell_kill_btn'))
             kill_btn.add_css_class("switcher-close")
             kill_btn.connect("clicked", lambda *_, p=pid: (
                 subprocess.Popen(["kill", p]),
@@ -463,8 +468,8 @@ class TopBar(Gtk.ApplicationWindow):
         left.append(sep)
 
         for label, cb in [
-            ("Terminal", lambda *_: run_app("ignis-terminal")),
-            ("창 전환 ⊟",  lambda *_: switcher_cb()),
+            (t('app_terminal'), lambda *_: run_app("ignis-terminal")),
+            (t('shell_switcher'), lambda *_: switcher_cb()),
         ]:
             b = Gtk.Button(label=label)
             b.connect("clicked", cb)
@@ -647,14 +652,14 @@ class Dock(Gtk.ApplicationWindow):
         vbox.append(Gtk.Separator())
 
         for label, action in [
-            ("▶  열기",        lambda: run_app(cmd)),
-            ("🔄  다시 시작",  lambda: (self._kill_app(cmd), GLib.timeout_add(500, lambda: run_app(cmd)))),
-            ("✕  닫기",       lambda: self._kill_app(cmd)),
-            ("ℹ️  앱 정보",    lambda: self._show_info(cmd, name)),
+            (t('shell_ctx_open'),    lambda: run_app(cmd)),
+            (t('shell_ctx_restart'), lambda: (self._kill_app(cmd), GLib.timeout_add(500, lambda: run_app(cmd)))),
+            (t('shell_ctx_close'),   lambda: self._kill_app(cmd)),
+            (t('shell_ctx_info'),    lambda: self._show_info(cmd, name)),
         ]:
             b = Gtk.Button(label=label)
             b.add_css_class("ctx-menu-btn")
-            if "닫기" in label:
+            if t('shell_ctx_close') in label:
                 b.add_css_class("ctx-menu-del")
             b.set_hexpand(True)
             act = action
@@ -681,11 +686,11 @@ class Dock(Gtk.ApplicationWindow):
             mem_out = ""
 
         dialog = Gtk.AlertDialog()
-        dialog.set_message(f"앱 정보: {name}")
+        dialog.set_message(f"{t('shell_app_info')} {name}")
         dialog.set_detail(
-            f"명령어: {cmd}\n"
-            f"PID: {pid_out or '실행 중이 아님'}\n"
-            f"메모리/CPU: {mem_out}"
+            f"{t('shell_cmd')} {cmd}\n"
+            f"{t('shell_pid_lbl')} {pid_out or t('shell_not_running')}\n"
+            f"{t('shell_mem_cpu')} {mem_out}"
         )
         dialog.show(self)
 
@@ -712,11 +717,11 @@ class Dock(Gtk.ApplicationWindow):
 
     def _on_power(self, *_):
         dialog = Gtk.AlertDialog()
-        dialog.set_message("전원 옵션")
-        dialog.set_detail("작업을 선택하세요")
-        dialog.add_button("취소")
-        dialog.add_button("재시작")
-        dialog.add_button("종료")
+        dialog.set_message(t('shell_power_title'))
+        dialog.set_detail(t('shell_power_msg'))
+        dialog.add_button(t('cancel'))
+        dialog.add_button(t('shell_restart'))
+        dialog.add_button(t('shell_shutdown'))
         dialog.set_default_button(0)
         dialog.set_cancel_button(0)
         dialog.choose(self, None, self._power_response, None)
@@ -748,7 +753,7 @@ class Launcher(Gtk.ApplicationWindow):
         self.set_child(main)
 
         search = Gtk.SearchEntry()
-        search.set_placeholder_text("앱 검색...")
+        search.set_placeholder_text(t('shell_search'))
         search.add_css_class("launcher-search")
         search.connect("search-changed", self._on_search)
         main.append(search)
@@ -769,10 +774,10 @@ class Launcher(Gtk.ApplicationWindow):
         self._populate(APPS)
 
         bot = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
-        for label, cmd in [("🔄 재시작","systemctl reboot"),
-                           ("⏻ 종료","systemctl poweroff"),
-                           ("💤 절전","systemctl suspend"),
-                           ("🔒 잠금","loginctl lock-session")]:
+        for label, cmd in [(t('shell_restart'), "systemctl reboot"),
+                           (t('shell_shutdown'), "systemctl poweroff"),
+                           (t('shell_sleep'), "systemctl suspend"),
+                           (t('shell_lock'), "loginctl lock-session")]:
             b = Gtk.Button(label=label)
             b.add_css_class("power-btn")
             b.connect("clicked", lambda _b, c=cmd: run_app(c))
