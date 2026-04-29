@@ -225,7 +225,7 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-badge">⚡ v1.4 · ARM64 · Ubuntu 24.04 Base · MIT License</div>
+    <div class="hero-badge">⚡ v1.5 · ARM64 · Ubuntu 24.04 Base · MIT License</div>
     <h1>The <span class="fire">Ignis</span>OS<br>Download Hub</h1>
     <p>A fully AI-built, open-source ARM64 Linux distribution with a custom GTK4 desktop,
        16 built-in apps, 18-panel settings, and UEFI boot support.</p>
@@ -233,7 +233,7 @@
 
   <!-- Download -->
   <section class="dl-section">
-    <h2>Download IgnisOS 1.4</h2>
+    <h2>Download IgnisOS 1.5</h2>
     <p class="dl-subtitle">ARM64 (aarch64) only — Raspberry Pi, Apple M-series (UTM), QEMU, AWS Graviton</p>
 
     <div class="arch-notice">
@@ -274,7 +274,7 @@
       <!-- Live ISO -->
       <div class="dl-card featured">
         <div class="dl-badge">Live · UEFI</div>
-        <h3>IgnisOS 1.4 ARM64</h3>
+        <h3>IgnisOS 1.5 ARM64</h3>
         <p>Boot directly from USB or VM. Full IgnisOS desktop with 16 apps — no installation needed. UEFI bootable.</p>
         <div class="dl-meta">
           <span class="tag">~1.5 GB</span>
@@ -326,15 +326,15 @@
       <p style="color:#fb923c;font-weight:700;margin-bottom:12px;">GitHub 다운로드가 느리다면 — aria2로 16배 빠르게</p>
       <pre style="margin:0;"><span class="comment"># macOS</span>
 <span class="cmd">brew install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.4.0-arm64.iso</span>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.5.0-arm64.iso</span>
 
 <span class="comment"># Linux</span>
 <span class="cmd">sudo apt install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.4.0-arm64.iso</span>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.5.0-arm64.iso</span>
 
 <span class="comment"># Windows (PowerShell)</span>
 <span class="cmd">winget install aria2
-aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.4.0-arm64.iso</span></pre>
+aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/download/IgnisOS-1.5.0-arm64.iso</span></pre>
     </div>
   </section>
 
@@ -367,8 +367,8 @@ aria2c -x 16 -s 16 https://github.com/viviantest1004/IgnisOS/releases/latest/dow
     <pre><span class="comment"># Apple Silicon Mac — 로컬 빌드 (Docker 필요)</span>
 <span class="cmd">git clone https://github.com/viviantest1004/IgnisOS.git
 cd IgnisOS
-./build-local.sh 1.4.0
-# → dist/IgnisOS-1.4.0-arm64.iso 생성 (20~30분)</span>
+./build-local.sh 1.5.0
+# → dist/IgnisOS-1.5.0-arm64.iso 생성 (20~30분)</span>
 
 <span class="comment"># UTM에서 실행 (Apple M-series)</span>
 <span class="cmd">1. UTM 설치 → https://mac.getutm.app
@@ -379,12 +379,12 @@ cd IgnisOS
 <span class="cmd">qemu-system-aarch64 \
   -M virt -cpu cortex-a72 -m 2048 \
   -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-  -drive if=virtio,format=raw,file=IgnisOS-1.4.0-arm64.iso \
+  -drive if=virtio,format=raw,file=IgnisOS-1.5.0-arm64.iso \
   -device virtio-gpu-pci -display sdl \
   -device usb-kbd -device usb-mouse -usb</span>
 
 <span class="comment"># USB 부팅 (Linux/macOS)</span>
-<span class="cmd">sudo dd if=IgnisOS-1.4.0-arm64.iso of=/dev/sdX bs=4M status=progress</span></pre>
+<span class="cmd">sudo dd if=IgnisOS-1.5.0-arm64.iso of=/dev/sdX bs=4M status=progress</span></pre>
   </section>
 
   <!-- Features -->
@@ -485,7 +485,7 @@ cd IgnisOS
   <!-- Footer -->
   <footer>
     <p>
-      🔥 IgnisOS 1.4 &nbsp;·&nbsp;
+      🔥 IgnisOS 1.5 &nbsp;·&nbsp;
       <a href="https://github.com/viviantest1004/IgnisOS">GitHub</a> &nbsp;·&nbsp;
       MIT License &nbsp;·&nbsp;
       100% AI-Built by Claude Sonnet 4.6
