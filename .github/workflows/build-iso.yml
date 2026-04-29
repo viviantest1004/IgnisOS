@@ -141,15 +141,7 @@ jobs:
           mdir -i "${EFI_IMG}" ::/EFI/BOOT/
 
           # startup.nsh — UEFI Shell fallback: BOOTAA64.EFI 자동 실행
-          cat > "${ISO_DIR}/startup.nsh" << 'NSHEOF'
-@echo -off
-echo IgnisOS UEFI boot...
-for %b in BLK0 BLK1 BLK2 BLK3 BLK4 BLK5; do
-  if exist %b:\EFI\BOOT\BOOTAA64.EFI then
-    %b:\EFI\BOOT\BOOTAA64.EFI
-  endif
-endfor
-NSHEOF
+          cp .github/startup.nsh "${ISO_DIR}/startup.nsh"
 
           sudo chmod -R a+rX "${ISO_DIR}"
 
