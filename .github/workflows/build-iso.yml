@@ -108,8 +108,9 @@ jobs:
           sudo chmod 644 "${ISO_DIR}/casper/filesystem.squashfs"
           echo "Squashfs: $(du -sh ${ISO_DIR}/casper/filesystem.squashfs | cut -f1)"
 
-          # rootfs 즉시 삭제 (디스크 확보)
-          sudo rm -rf "${ROOTFS}"
+          # rootfs + build 디렉토리 전체 삭제 (디스크 확보)
+          sudo rm -rf "${ROOTFS}" build/rootfs
+          sudo apt-get clean
           df -h
 
           # GRUB config (casper 경로로 치환)

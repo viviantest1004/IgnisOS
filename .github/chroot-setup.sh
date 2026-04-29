@@ -13,18 +13,28 @@ EOF
 
 apt-get update -qq 2>&1 | tail -5
 
-# Core packages
+# chroot 내에서 서비스 시작 방지
+cat > /usr/sbin/policy-rc.d << 'POLICY'
+#!/bin/sh
+exit 101
+POLICY
+chmod +x /usr/sbin/policy-rc.d
+
+# Core packages (최소 구성)
 apt-get install -y --no-install-recommends \
     linux-image-generic \
     casper \
-    xorg openbox \
-    lightdm lightdm-gtk-greeter \
+    xorg \
+    openbox \
+    lightdm \
     python3 python3-gi python3-gi-cairo \
     gir1.2-gtk-4.0 gir1.2-adw-1 \
-    network-manager \
-    fonts-noto fonts-ubuntu \
+    fonts-noto \
     sudo ca-certificates locales tzdata \
     libnotify-bin build-essential
+
+# policy-rc.d 제거 (정상 부팅 허용)
+rm -f /usr/sbin/policy-rc.d
 
 # Locale
 locale-gen en_US.UTF-8 ko_KR.UTF-8
