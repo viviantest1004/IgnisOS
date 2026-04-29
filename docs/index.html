@@ -243,6 +243,33 @@
          Compatible: Raspberry Pi 4/5, Apple M1/M2/M3/M4 (UTM), QEMU ARM64, AWS Graviton, Ampere Altra.</p>
     </div>
 
+    <!-- 시스템 요구사항 -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:24px 0;">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(232,93,4,0.25);border-radius:14px;padding:18px 20px;">
+        <div style="font-size:22px;margin-bottom:6px;">🖥️</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Architecture</div>
+        <div style="font-size:16px;font-weight:700;color:#f1f5f9;margin-top:4px;">ARM64 only</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(232,93,4,0.25);border-radius:14px;padding:18px 20px;">
+        <div style="font-size:22px;margin-bottom:6px;">💾</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">최소 저장공간</div>
+        <div style="font-size:16px;font-weight:700;color:#fb923c;margin-top:4px;">12 GB</div>
+        <div style="font-size:12px;color:#64748b;">권장 20 GB+</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(232,93,4,0.25);border-radius:14px;padding:18px 20px;">
+        <div style="font-size:22px;margin-bottom:6px;">🧠</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">최소 RAM</div>
+        <div style="font-size:16px;font-weight:700;color:#fb923c;margin-top:4px;">2 GB</div>
+        <div style="font-size:12px;color:#64748b;">권장 4 GB+</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(232,93,4,0.25);border-radius:14px;padding:18px 20px;">
+        <div style="font-size:22px;margin-bottom:6px;">📀</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">ISO 크기</div>
+        <div style="font-size:16px;font-weight:700;color:#f1f5f9;margin-top:4px;">~1.3 GB</div>
+        <div style="font-size:12px;color:#64748b;">라이브 부팅 지원</div>
+      </div>
+    </div>
+
     <div class="dl-grid">
       <!-- Live ISO -->
       <div class="dl-card featured">
@@ -346,7 +373,7 @@ cd IgnisOS
 <span class="comment"># UTM에서 실행 (Apple M-series)</span>
 <span class="cmd">1. UTM 설치 → https://mac.getutm.app
 2. + → Virtualize → Linux → ISO 선택
-3. RAM 2048MB+ · 20GB 디스크 → 저장 → 실행</span>
+3. RAM 2048MB+ (최소) · 12GB 디스크 (최소) → 저장 → 실행</span>
 
 <span class="comment"># QEMU ARM64 VM</span>
 <span class="cmd">qemu-system-aarch64 \
