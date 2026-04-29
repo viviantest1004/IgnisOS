@@ -73,7 +73,14 @@ if [ -f /usr/share/ignis/uptime-kernel/uptime_kernel.c ]; then
         /usr/share/ignis/uptime-kernel/uptime_kernel.c -lm || true
 fi
 
-# Autostart
+# Openbox autostart (XDG autostart는 openbox에서 동작 안 할 수 있음)
+mkdir -p /etc/xdg/openbox
+cat > /etc/xdg/openbox/autostart << 'EOF'
+# IgnisOS shell 자동시작
+/usr/local/bin/ignis-shell &
+EOF
+
+# XDG autostart도 추가 (호환성)
 mkdir -p /etc/xdg/autostart
 cat > /etc/xdg/autostart/ignis-shell.desktop << 'EOF'
 [Desktop Entry]
@@ -90,7 +97,11 @@ cat > /etc/lightdm/lightdm.conf << 'EOF'
 autologin-user=ignis
 autologin-user-timeout=0
 user-session=openbox
+greeter-session=lightdm-autologin-greeter
 EOF
+
+# LightDM autologin greeter 설치 확보
+apt-get install -y --no-install-recommends lightdm-autologin-greeter 2>/dev/null || true
 
 # OS branding
 cat > /etc/os-release << 'EOF'
