@@ -117,9 +117,8 @@ jobs:
           sudo apt-get clean
           df -h
 
-          # GRUB config (casper 경로로 치환)
-          sed 's|/boot/vmlinuz|/casper/vmlinuz|g; s|/boot/initrd.img|/casper/initrd|g' \
-            config/grub/grub.cfg > "${ISO_DIR}/boot/grub/grub.cfg"
+          # GRUB config 복사 (이미 /casper/ 경로 사용)
+          cp config/grub/grub.cfg "${ISO_DIR}/boot/grub/grub.cfg"
 
           # UEFI BOOTAA64.EFI
           grub-mkstandalone \
