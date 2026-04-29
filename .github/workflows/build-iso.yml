@@ -62,7 +62,9 @@ jobs:
           sudo mkdir -p build/rootfs/usr/share/ignis
           for app in ignis-shell ignis-settings ignis-files ignis-calc \
                      ignis-terminal ignis-notepad ignis-clock ignis-taskmanager \
-                     ignis-recovery ignis-oobe; do
+                     ignis-recovery ignis-oobe \
+                     ignis-imageviewer ignis-music ignis-video \
+                     ignis-calendar ignis-screenshot ignis-archive ignis-sysinfo; do
             [ -d "$app" ] && sudo cp -r "$app" build/rootfs/usr/share/ignis/
           done
 
@@ -126,12 +128,12 @@ jobs:
               search_fs_uuid search_fs_file gfxterm all_video loadenv ext2" \
             "boot/grub/grub.cfg=${ISO_DIR}/boot/grub/grub.cfg"
 
-          # EFI 파티션 이미지
+          # EFI 파티션 이미지 (mtools로 직접 포맷)
           EFI_IMG="${ISO_DIR}/boot/grub/efi.img"
-          dd if=/dev/zero of="${EFI_IMG}" bs=1M count=4 2>/dev/null
-          mkfs.vfat "${EFI_IMG}"
-          mmd  -i "${EFI_IMG}" ::/EFI ::/EFI/BOOT
-          mcopy -i "${EFI_IMG}" "${ISO_DIR}/EFI/BOOT/BOOTAA64.EFI" \
+          truncate -s 10M "${EFI_IMG}"
+          mformat -i "${EFI_IMG}" -F ::
+          mmd    -i "${EFI_IMG}" ::/EFI ::/EFI/BOOT
+          mcopy  -i "${EFI_IMG}" "${ISO_DIR}/EFI/BOOT/BOOTAA64.EFI" \
             ::/EFI/BOOT/BOOTAA64.EFI
 
           sudo chmod -R a+rX "${ISO_DIR}"

@@ -31,7 +31,12 @@ apt-get install -y --no-install-recommends \
     gir1.2-gtk-4.0 gir1.2-adw-1 \
     fonts-noto \
     sudo ca-certificates locales tzdata \
-    libnotify-bin build-essential
+    libnotify-bin build-essential \
+    scrot ffmpeg \
+    zip unzip \
+    pciutils \
+    librsvg2-common \
+    gir1.2-gdkpixbuf-2.0
 
 # policy-rc.d 제거 (정상 부팅 허용)
 rm -f /usr/sbin/policy-rc.d
@@ -47,7 +52,8 @@ echo "root:ignis"   | chpasswd
 echo "ignis ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Launcher scripts
-for app in shell settings files calc terminal notepad clock taskmanager oobe; do
+for app in shell settings files calc terminal notepad clock taskmanager oobe \
+           imageviewer music video calendar screenshot archive sysinfo; do
     cat > /usr/local/bin/ignis-${app} << LAUNCHER
 #!/bin/bash
 exec python3 /usr/share/ignis/ignis-${app}/${app}.py "\$@"

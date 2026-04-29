@@ -241,18 +241,24 @@ button:active { transform: scale(0.95); }
 """
 
 APPS = [
-    {"name": "Terminal",     "icon": "🖥️",  "cmd": "ignis-terminal",     "fixed": True},
-    {"name": "Calculator",   "icon": "🧮",  "cmd": "ignis-calc",         "fixed": True},
-    {"name": "Browser",      "icon": "🌐",  "cmd": "firefox",            "fixed": True},
-    {"name": "Settings",     "icon": "⚙️",  "cmd": "ignis-settings",     "fixed": True},
-    {"name": "Files",        "icon": "📂",  "cmd": "ignis-files",        "fixed": True},
-    {"name": "메모장",        "icon": "📝",  "cmd": "ignis-notepad",      "fixed": True},
-    {"name": "시계",          "icon": "🕐",  "cmd": "ignis-clock",        "fixed": False},
-    {"name": "작업 관리자",   "icon": "📊",  "cmd": "ignis-taskmanager",  "fixed": False},
-    {"name": "Python",       "icon": "🐍",  "cmd": "ignis-terminal",     "fixed": False},
-    {"name": "Image Viewer", "icon": "🖼️",  "cmd": "eog",                "fixed": False},
-    {"name": "Text Editor",  "icon": "✏️",  "cmd": "gedit",              "fixed": False},
-    {"name": "Recovery",     "icon": "🛠️",  "cmd": "ignis-recovery",     "fixed": False},
+    # 독(dock) 고정 앱
+    {"name": "Terminal",     "icon": "🖥️",  "cmd": "ignis-terminal",      "fixed": True},
+    {"name": "Files",        "icon": "📂",  "cmd": "ignis-files",         "fixed": True},
+    {"name": "Browser",      "icon": "🌐",  "cmd": "firefox",             "fixed": True},
+    {"name": "Settings",     "icon": "⚙️",  "cmd": "ignis-settings",      "fixed": True},
+    {"name": "메모장",        "icon": "📝",  "cmd": "ignis-notepad",       "fixed": True},
+    # 런처 앱
+    {"name": "계산기",        "icon": "🧮",  "cmd": "ignis-calc",          "fixed": False},
+    {"name": "시계",          "icon": "🕐",  "cmd": "ignis-clock",         "fixed": False},
+    {"name": "캘린더",        "icon": "📅",  "cmd": "ignis-calendar",      "fixed": False},
+    {"name": "작업 관리자",   "icon": "📊",  "cmd": "ignis-taskmanager",   "fixed": False},
+    {"name": "이미지 뷰어",   "icon": "🖼️",  "cmd": "ignis-imageviewer",   "fixed": False},
+    {"name": "음악 플레이어", "icon": "🎵",  "cmd": "ignis-music",          "fixed": False},
+    {"name": "동영상 플레이어","icon": "🎬",  "cmd": "ignis-video",          "fixed": False},
+    {"name": "스크린샷",      "icon": "📷",  "cmd": "ignis-screenshot",    "fixed": False},
+    {"name": "아카이브",      "icon": "📦",  "cmd": "ignis-archive",       "fixed": False},
+    {"name": "시스템 정보",   "icon": "💻",  "cmd": "ignis-sysinfo",       "fixed": False},
+    {"name": "복구 모드",     "icon": "🛠️",  "cmd": "ignis-recovery",      "fixed": False},
 ]
 
 
