@@ -137,10 +137,12 @@ jobs:
           mmd    -i "${EFI_IMG}" ::/EFI ::/EFI/BOOT
           mcopy  -i "${EFI_IMG}" "${ISO_DIR}/EFI/BOOT/BOOTAA64.EFI" \
             ::/EFI/BOOT/BOOTAA64.EFI
-          echo "EFI img: $(ls -lh ${EFI_IMG} | awk '{print $5}')"
-          mdir -i "${EFI_IMG}" ::/EFI/BOOT/
+          # startup.nsh를 efi.img 루트에도 복사 (UEFI Shell은 FAT만 읽음)
+          mcopy  -i "${EFI_IMG}" .github/startup.nsh ::/startup.nsh
+          echo "EFI img contents:"
+          mdir -i "${EFI_IMG}" ::
 
-          # startup.nsh — UEFI Shell fallback: BOOTAA64.EFI 자동 실행
+          # startup.nsh를 ISO 루트에도 복사 (혹시 CDROM 접근 가능할 때)
           cp .github/startup.nsh "${ISO_DIR}/startup.nsh"
 
           sudo chmod -R a+rX "${ISO_DIR}"
@@ -151,7 +153,6 @@ jobs:
             -J -joliet-long \
             -no-emul-boot \
             -e boot/grub/efi.img \
-            --efi-boot-part --efi-boot-image \
             -isohybrid-gpt-basdat \
             -o "IgnisOS-${VER}-arm64.iso" "${ISO_DIR}"
           echo "ISO: $(du -sh IgnisOS-${VER}-arm64.iso | cut -f1)"
