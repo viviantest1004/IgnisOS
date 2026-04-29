@@ -36,7 +36,9 @@ apt-get install -y --no-install-recommends \
     zip unzip \
     pciutils \
     librsvg2-common \
-    gir1.2-gdkpixbuf-2.0
+    gir1.2-gdkpixbuf-2.0 \
+    xserver-xorg-video-fbdev \
+    xserver-xorg-video-vesa
 
 # policy-rc.d 제거 (정상 부팅 허용)
 rm -f /usr/sbin/policy-rc.d
@@ -102,6 +104,21 @@ EOF
 
 # LightDM autologin greeter 설치 확보
 apt-get install -y --no-install-recommends lightdm-autologin-greeter 2>/dev/null || true
+
+# Xorg 설정 — fbdev 드라이버 강제 (virtio-ramfb, UTM 호환)
+mkdir -p /etc/X11/xorg.conf.d
+cat > /etc/X11/xorg.conf.d/10-fbdev.conf << 'EOF'
+Section "Device"
+    Identifier "Card0"
+    Driver     "fbdev"
+EndSection
+
+Section "Screen"
+    Identifier "Screen0"
+    Device     "Card0"
+    DefaultDepth 24
+EndSection
+EOF
 
 # OS branding
 cat > /etc/os-release << 'EOF'
